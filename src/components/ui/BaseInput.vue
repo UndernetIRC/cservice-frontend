@@ -10,7 +10,7 @@
     />
     <label
       :for="id"
-      class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-6 scale-75 top-3 z-10 origin-[0] left-3 px-1 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-slate-500 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:text-primary peer-focus:bg-white dark:peer-focus:bg-gray-800 pointer-events-none"
+      class="absolute text-sm duration-300 transform -translate-y-6 scale-75 top-3 z-10 origin-[0] left-3 px-1 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-slate-500 peer-focus:scale-75 peer-focus:-translate-y-6 peer-focus:text-primary peer-focus:bg-white dark:peer-focus:bg-gray-800 pointer-events-none"
     >
       {{ label }}
     </label>
