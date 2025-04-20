@@ -1,0 +1,24 @@
+@import 'tailwindcss';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Removed commented-out directives */
+
+/* Base body styles applied directly */
+body {
+  background-color: #0f172a; /* NEW: slate-900 = background */
+  color: #f1f5f9; /* NEW: slate-100 = text-primary */
+}
+
+/*
+@layer base {
+  body {
+    background-color: #f8fafc;
+    color: #0f172a;
+  }
+}
+*/
+
+/* All other styles temporarily removed for testing */
