@@ -88,7 +88,7 @@
       <!-- Bottom Bar -->
       <div class="mt-8 border-t border-gray-700 pt-8 text-center">
         <p class="text-base">
-          &copy; {{ new Date().getFullYear() }} UnderNET Portal. All rights reserved.
+          &copy; {{ new Date().getFullYear() }} UnderNET. All rights reserved.
         </p>
       </div>
     </div>

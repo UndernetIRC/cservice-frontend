@@ -59,47 +59,17 @@
         </div>
       </div>
 
-      <!-- Quick Actions Box -->
-      <div
-        class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden"
-      >
-        <h2
-          class="p-4 text-lg font-semibold border-b border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100"
-        >
-          Quick Actions
-        </h2>
-        <div class="p-4">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- Channel Action Card -->
-            <router-link
-              to="/channels"
-              class="block p-4 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors duration-150 ease-in-out"
-            >
-              <h3 class="font-semibold text-gray-800 dark:text-gray-100">Channels</h3>
-              <p class="text-sm text-gray-600 dark:text-gray-400">View and manage your channels</p>
-            </router-link>
-            <!-- Admin Roles Action Card (Conditional) -->
-            <router-link
-              v-if="isAdmin"
-              to="/admin/roles"
-              class="block p-4 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors duration-150 ease-in-out"
-            >
-              <h3 class="font-semibold text-gray-800 dark:text-gray-100">Roles</h3>
-              <p class="text-sm text-gray-600 dark:text-gray-400">
-                Manage user roles and permissions
-              </p>
-            </router-link>
-          </div>
-        </div>
-      </div>
+      <!-- Channel List -->
+      <channel-list :channels="userInfo.channels" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed, watch } from 'vue'
+import { onMounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
+import ChannelList from '@/components/dashboard/ChannelList.vue'
 
 const authStore = useAuthStore()
 const { userInfo, isLoading, error } = storeToRefs(authStore)
@@ -120,12 +90,6 @@ watch(isLoading, (newValue) => {
 
 watch(error, (newValue) => {
   console.log('Error state changed:', newValue)
-})
-
-const isAdmin = computed(() => {
-  const adminLevel = userInfo.value?.admin_level ?? 0
-  console.log('Current admin level:', adminLevel)
-  return adminLevel >= 800
 })
 
 const formatDate = (dateString?: string) => {

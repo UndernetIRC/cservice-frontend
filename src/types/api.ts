@@ -34,6 +34,12 @@ export interface LogoutRequest {
   logout_all?: boolean
 }
 
+export interface ChannelInfo {
+  channel_id: number
+  name: string
+  access: number
+}
+
 export interface MeResponse {
   id: number
   username: string
@@ -46,6 +52,7 @@ export interface MeResponse {
   date_joined: string
   last_login: string
   admin_level?: number
+  channels?: ChannelInfo[]
 }
 
 export interface Role {

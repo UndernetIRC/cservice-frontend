@@ -22,3 +22,31 @@ body {
 */
 
 /* All other styles temporarily removed for testing */
+
+/* Add global dark mode styles for Element Plus components here */
+html.dark .el-select-dropdown {
+  background-color: #334155 !important;
+  border-color: #334155 !important;
+}
+html.dark .el-pagination .el-select .el-input .el-input__wrapper,
+html.dark .el-pagination__jump .el-input .el-input__wrapper {
+  background-color: #334155 !important;
+  box-shadow: 0 0 0 1px #334155 inset !important;
+}
+html.dark .el-pagination .el-select .el-select__input,
+html.dark .el-pagination__jump .el-input__inner {
+  color: #f1f5f9 !important;
+}
+html.dark .el-pagination button,
+html.dark .el-pager li {
+  background-color: #334155 !important;
+  color: #94a3b8 !important;
+}
+html.dark .el-pager li.is-active {
+  background-color: #2563eb !important;
+  color: #f1f5f9 !important;
+}
+html.dark .el-pagination button:disabled {
+  background-color: #0f172a !important;
+  color: #4b5563 !important;
+}
