@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 
 const authStore = useAuthStore()
-const { isAuthenticated } = storeToRefs(authStore)
+const { isAuthenticated, isAuthCheckComplete } = storeToRefs(authStore)
 </script>
 
 <template>
@@ -15,7 +15,10 @@ const { isAuthenticated } = storeToRefs(authStore)
     <main class="flex-1">
       <router-view />
     </main>
-    <TheMinimalFooter v-if="isAuthenticated" />
-    <TheFooter v-else />
+    <!-- Only render footers after initial auth check is complete -->
+    <template v-if="isAuthCheckComplete">
+      <TheMinimalFooter v-if="isAuthenticated" />
+      <TheFooter v-else />
+    </template>
   </div>
 </template>

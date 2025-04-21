@@ -16,6 +16,7 @@ import router from '@/router'
 export const useAuthStore = defineStore('auth', () => {
   const userInfo = ref<MeResponse | null>(null)
   const isAuthenticated = ref(false)
+  const isAuthCheckComplete = ref(false)
   const error = ref<string | null>(null)
   const isLoading = ref(false)
 
@@ -104,9 +105,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function checkAuth(): Promise<boolean> {
+    isAuthCheckComplete.value = false
     const rawToken = localStorage.getItem('access_token')
     // No token means not authenticated
     if (!rawToken) {
+      isAuthCheckComplete.value = true
       return false
     }
 
@@ -118,11 +121,13 @@ export const useAuthStore = defineStore('auth', () => {
       accessToken.value = newToken
     } catch {
       clearAuth()
+      isAuthCheckComplete.value = true
       return false
     }
 
     // If user info already fetched, skip re-fetch
     if (isAuthenticated.value && userInfo.value) {
+      isAuthCheckComplete.value = true
       return true
     }
 
@@ -133,6 +138,8 @@ export const useAuthStore = defineStore('auth', () => {
     } catch {
       clearAuth()
       return false
+    } finally {
+      isAuthCheckComplete.value = true
     }
   }
 
@@ -304,6 +311,7 @@ export const useAuthStore = defineStore('auth', () => {
     mfaStateToken, // Expose for potential display/debug, though not strictly needed by UI
     mfaExpiresAt, // Expose for potential display
     isMfaTokenExpired, // Expose computed property
+    isAuthCheckComplete, // Expose completion flag
     login,
     logout,
     checkAuth,
