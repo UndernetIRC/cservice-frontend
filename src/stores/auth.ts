@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import apiService from '@/services/api'
 import type {
   LoginRequest,
@@ -10,6 +10,7 @@ import type {
   ApiError,
 } from '@/types/api'
 import { isTokenValid, decodeToken } from '@/utils/jwt'
+import { useTimeoutFn } from '@vueuse/core'
 
 export const useAuthStore = defineStore('auth', () => {
   const userInfo = ref<MeResponse | null>(null)
@@ -35,6 +36,51 @@ export const useAuthStore = defineStore('auth', () => {
     return expiry ? expiry.getTime() <= Date.now() : false
   })
 
+  // track access token for auto-refresh scheduling
+  const accessToken = ref<string | null>(localStorage.getItem('access_token'))
+  let refreshTimer: ReturnType<typeof useTimeoutFn> | null = null
+
+  // call refresh endpoint and update access token
+  async function refreshAccessToken() {
+    try {
+      const response = await apiService.refreshToken()
+      const newToken = (response.data as JwtResponse).access_token
+      localStorage.setItem('access_token', newToken)
+      accessToken.value = newToken
+    } catch {
+      clearAuth()
+    }
+  }
+
+  // schedule background refresh when token is near expiry (60-90s before)
+  watch(
+    accessToken,
+    (token) => {
+      if (refreshTimer) {
+        refreshTimer.stop()
+        refreshTimer = null
+      }
+
+      if (token) {
+        const decoded = decodeToken(token)
+        if (decoded && decoded.exp) {
+          const expiresAtMs = decoded.exp * 1000
+          const nowMs = Date.now()
+          const offsetSeconds = 60 + Math.random() * 30
+          const delayMs = expiresAtMs - nowMs - offsetSeconds * 1000
+
+          if (delayMs > 0) {
+            refreshTimer = useTimeoutFn(refreshAccessToken, delayMs)
+            refreshTimer.start()
+          } else {
+            refreshAccessToken()
+          }
+        }
+      }
+    },
+    { immediate: true },
+  )
+
   function clearAuth() {
     userInfo.value = null
     isAuthenticated.value = false
@@ -42,14 +88,14 @@ export const useAuthStore = defineStore('auth', () => {
     isMfaRequired.value = false // Clear MFA state
     mfaStateToken.value = null
     mfaExpiresAt.value = null
+    accessToken.value = null
     localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
   }
 
   // Helper to set JWT tokens and user info
   function setAuthentication(tokens: JwtResponse) {
+    accessToken.value = tokens.access_token
     localStorage.setItem('access_token', tokens.access_token)
-    localStorage.setItem('refresh_token', tokens.refresh_token)
     isAuthenticated.value = true
     isMfaRequired.value = false // Clear MFA state on successful auth
     mfaStateToken.value = null

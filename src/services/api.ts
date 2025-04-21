@@ -10,13 +10,12 @@ import type {
   RoleListResponse,
   FactorVerifyRequest,
   FactorVerifyResponse,
-  JwtResponse,
-  MfaRequiredResponse,
   RefreshResponse,
 } from '@/types/api'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -105,7 +104,8 @@ const apiService = {
   },
 
   refreshToken: async () => {
-    const response = await api.post<LoginResponse>('/auth/refresh')
+    // Call refresh endpoint, returns JSON with access_token and refresh_token
+    const response = await api.post<RefreshResponse>('/authn/refresh')
     return response
   },
 
