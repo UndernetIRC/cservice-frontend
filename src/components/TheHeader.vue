@@ -319,7 +319,7 @@ const handleLogout = async () => {
   await authStore.logout()
   // Ensure mobile menu is closed if open
   isMobileMenuOpen.value = false
-  router.push('/login')
+  // Navigation is now handled within the authStore.logout() action
 }
 
 // Separate handler for mobile to ensure menu closes before navigation potentially changes layout

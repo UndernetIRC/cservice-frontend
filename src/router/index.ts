@@ -57,6 +57,13 @@ router.beforeEach(async (to, from, next) => {
   const isAuthenticated = await authStore.checkAuth()
   console.log('Is authenticated:', isAuthenticated)
 
+  // Auto-redirect authenticated users away from the landing page
+  if (to.name === 'landing' && isAuthenticated) {
+    console.log('User already logged in, redirecting to dashboard')
+    next({ name: 'dashboard' })
+    return
+  }
+
   // If route requires auth and user is not authenticated, redirect to login
   if (to.meta.requiresAuth && !isAuthenticated) {
     console.log('Redirecting to login')

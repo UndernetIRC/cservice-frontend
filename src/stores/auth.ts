@@ -9,8 +9,9 @@ import type {
   FactorVerifyRequest,
   ApiError,
 } from '@/types/api'
-import { isTokenValid, decodeToken } from '@/utils/jwt'
+import { decodeToken } from '@/utils/jwt'
 import { useTimeoutFn } from '@vueuse/core'
+import router from '@/router'
 
 export const useAuthStore = defineStore('auth', () => {
   const userInfo = ref<MeResponse | null>(null)
@@ -103,24 +104,34 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function checkAuth(): Promise<boolean> {
-    const token = localStorage.getItem('access_token')
-    if (!token || !isTokenValid(token)) {
+    const rawToken = localStorage.getItem('access_token')
+    // No token means not authenticated
+    if (!rawToken) {
+      return false
+    }
+
+    // Always attempt a silent refresh to validate refresh token cookie
+    try {
+      const response = await apiService.refreshToken()
+      const newToken = (response.data as JwtResponse).access_token
+      localStorage.setItem('access_token', newToken)
+      accessToken.value = newToken
+    } catch {
       clearAuth()
       return false
     }
 
-    // If already authenticated in the store, assume valid until fetch fails
+    // If user info already fetched, skip re-fetch
     if (isAuthenticated.value && userInfo.value) {
       return true
     }
 
     try {
-      // Re-fetch user info to ensure session is still valid server-side
-      // and to get latest user details.
-      await fetchUserInfo() // This sets isAuthenticated = true on success
-      return isAuthenticated.value // Return the state after fetchUserInfo
+      // Fetch user info and mark authenticated
+      await fetchUserInfo()
+      return isAuthenticated.value
     } catch {
-      clearAuth() // Clear auth if fetch fails
+      clearAuth()
       return false
     }
   }
@@ -237,6 +248,8 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       clearAuth() // Always clear local state afterwards, regardless of API call success/failure
       isLoading.value = false
+      // Redirect to landing page after logout
+      router.push({ name: 'landing' })
     }
   }
 
