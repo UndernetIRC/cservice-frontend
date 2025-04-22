@@ -1,16 +1,22 @@
 <template>
-  <header class="bg-secondary shadow-md">
+  <header class="bg-gray-900/95 backdrop-blur-sm shadow-md fixed top-0 w-full z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="relative flex justify-between h-16">
-        <!-- Left Section: Logo and Nav -->
+        <!-- Left Section: Logo -->
         <div class="flex items-center">
           <!-- Logo Link -->
           <router-link to="/dashboard" class="flex-shrink-0 flex items-center">
             <!-- Using local logo -->
             <img src="/images/logo.png" alt="UnderNET Logo" class="h-8 w-auto" />
           </router-link>
+        </div>
+
+        <!-- Center Section (Removed for simplicity, was empty) -->
+
+        <!-- Right Section: Nav Links and User Menu -->
+        <div class="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-8">
           <!-- Navigation Links -->
-          <nav v-if="isAuthenticated" class="hidden sm:ml-6 sm:flex sm:space-x-8">
+          <nav v-if="isAuthenticated" class="flex space-x-8">
             <router-link
               to="/channels"
               class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-text-secondary hover:text-text-primary hover:border-slate-300"
@@ -27,17 +33,8 @@
               Admin
             </router-link>
           </nav>
-        </div>
 
-        <!-- Center Section (for potential future use) -->
-        <div
-          class="absolute inset-y-0 left-1/2 transform -translate-x-1/2 flex items-center px-2 lg:px-0"
-        >
-          <!-- Can add search or other elements here -->
-        </div>
-
-        <!-- Right Section: User Menu (Hidden on sm and below) -->
-        <div class="hidden sm:ml-6 sm:flex sm:items-center">
+          <!-- User Menu Dropdown -->
           <Menu v-if="isAuthenticated" as="div" class="ml-3 relative">
             <div>
               <MenuButton

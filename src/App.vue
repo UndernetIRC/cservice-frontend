@@ -12,7 +12,7 @@ const { isAuthenticated, isAuthCheckComplete } = storeToRefs(authStore)
 <template>
   <div class="flex flex-col min-h-screen">
     <TheHeader v-if="isAuthenticated" />
-    <main class="flex-1">
+    <main class="flex-1" :class="{ 'pt-16': isAuthenticated }">
       <router-view />
     </main>
     <!-- Only render footers after initial auth check is complete -->
