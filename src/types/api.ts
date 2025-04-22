@@ -53,6 +53,7 @@ export interface MeResponse {
   last_login: string
   admin_level?: number
   channels?: ChannelInfo[]
+  scopes?: string[]
 }
 
 export interface Role {

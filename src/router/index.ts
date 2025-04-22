@@ -81,8 +81,14 @@ router.beforeEach(async (to, from, next) => {
   }
 
   // If route requires admin and user is not admin, redirect to dashboard
+  console.log(
+    '[Router Guard] Checking admin requirement. UserInfo:',
+    JSON.parse(JSON.stringify(authStore.userInfo || null)),
+  )
   if (to.meta.requiresAdmin && !authStore.isAdmin) {
-    console.log('User is not admin, redirecting to dashboard')
+    console.log(
+      '[Router Guard] User is not admin (or userInfo not ready), redirecting to dashboard',
+    )
     next({ name: 'dashboard' })
     return
   }

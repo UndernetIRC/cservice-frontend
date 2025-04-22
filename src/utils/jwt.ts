@@ -5,6 +5,7 @@ interface JwtPayload {
   exp: number
   iat: number
   adm?: number
+  scp?: string[]
 }
 
 export function decodeToken(token: string): JwtPayload | null {

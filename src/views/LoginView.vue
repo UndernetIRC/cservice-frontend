@@ -25,41 +25,28 @@
       <!-- Standard Login Form -->
       <form v-if="!isMfaRequired" class="mt-8 space-y-8" @submit.prevent="handleLoginSubmit">
         <!-- Username Field -->
-        <div class="relative z-0">
-          <input
+        <div>
+          <BaseInput
             id="username"
             v-model="username"
-            name="username"
+            label="Username"
             type="text"
             autocomplete="username"
-            class="peer block w-full px-3 py-3 appearance-none rounded-md border border-slate-600 bg-transparent placeholder-transparent text-text-primary focus:outline-none focus:ring-0 focus:border-primary sm:text-sm"
-            placeholder=" "
+            required
           />
-          <label
-            for="username"
-            class="absolute text-sm duration-300 transform -translate-y-6 scale-75 top-3 z-10 origin-[0] left-3 px-1 peer-focus:text-primary peer-focus:bg-slate-800 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-slate-500 peer-focus:scale-75 peer-focus:-translate-y-6 pointer-events-none"
-          >
-            Username
-          </label>
         </div>
 
         <!-- Password Field -->
-        <div class="relative z-0">
-          <input
+        <div>
+          <BaseInput
             id="password"
             v-model="password"
-            name="password"
+            label="Password"
             type="password"
             autocomplete="current-password"
-            class="peer block w-full px-3 py-3 appearance-none rounded-md border border-slate-600 bg-transparent placeholder-transparent text-text-primary focus:outline-none focus:ring-0 focus:border-primary sm:text-sm"
-            placeholder=" "
+            required
+            data-com-onepassword-filled=""
           />
-          <label
-            for="password"
-            class="absolute text-sm duration-300 transform -translate-y-6 scale-75 top-3 z-10 origin-[0] left-3 px-1 peer-focus:text-primary peer-focus:bg-slate-800 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-slate-500 peer-focus:scale-75 peer-focus:-translate-y-6 pointer-events-none"
-          >
-            Password
-          </label>
         </div>
 
         <div>
@@ -101,30 +88,25 @@
       </div>
 
       <!-- MFA Form -->
-      <form v-else class="mt-8 space-y-8" @submit.prevent="handleMfaSubmit">
+      <form v-else class="mt-8 space-y-6" @submit.prevent="handleMfaSubmit">
         <p class="text-center text-sm text-text-secondary">
           Enter the code from your authenticator app.
         </p>
 
-        <!-- MFA Input Field with Floating Label -->
-        <div class="relative z-0">
-          <input
+        <!-- MFA Input Field -->
+        <div>
+          <BaseInput
             id="otp"
             v-model="otpCode"
-            name="otp"
+            label="6-digit code"
             type="text"
             inputmode="numeric"
             pattern="[0-9]*"
             autocomplete="one-time-code"
-            class="peer block w-full px-3 py-3 appearance-none rounded-md border border-slate-600 bg-transparent placeholder-transparent text-text-primary focus:outline-none focus:ring-0 focus:border-primary sm:text-sm"
-            placeholder=" "
+            required
+            :error="otpError"
           />
-          <label
-            for="otp"
-            class="absolute text-sm duration-300 transform -translate-y-6 scale-75 top-3 z-10 origin-[0] left-3 px-1 peer-focus:text-primary peer-focus:bg-slate-800 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-slate-500 peer-focus:scale-75 peer-focus:-translate-y-6 pointer-events-none"
-          >
-            6-digit code
-          </label>
+          <p v-if="otpError" class="mt-1 text-xs text-red-400">{{ otpError }}</p>
         </div>
 
         <div>
@@ -138,8 +120,8 @@
         </div>
       </form>
 
-      <!-- Common Error Display -->
-      <div v-if="error" class="text-red-400 text-sm text-center">
+      <!-- Common Error Display (Should now only show non-OTP errors) -->
+      <div v-if="error" class="text-red-400 text-sm text-center mt-4">
         {{ error }}
       </div>
     </div>
@@ -147,45 +129,65 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
+import BaseInput from '@/components/ui/BaseInput.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
-// Use storeToRefs to keep reactivity for error, isLoading, and isMfaRequired
 const { error, isLoading, isMfaRequired } = storeToRefs(authStore)
 
 const username = ref('')
 const password = ref('')
-const otpCode = ref('') // Ref for the OTP code input
+const otpCode = ref('')
+const otpError = ref('')
 
-// Renamed original submit handler
+// Watcher to clear OTP error when user types
+watch(otpCode, () => {
+  if (otpError.value) {
+    otpError.value = ''
+  }
+})
+
 const handleLoginSubmit = async () => {
   const success = await authStore.login({
     username: username.value,
     password: password.value,
   })
 
-  // If login was successful (returned true) or MFA is not required, redirect.
-  // If MFA is required, login returns false, and we stay on this view.
   if (success && !isMfaRequired.value) {
     router.push('/dashboard')
   }
-  // Error handling is done within the store, displayed via the template
 }
 
-// New handler for MFA form submission
 const handleMfaSubmit = async () => {
-  const success = await authStore.verifyMfa(otpCode.value)
+  otpError.value = '' // Clear previous inline OTP error
+  authStore.clearError() // Clear previous global error
+
+  const otpValue = otpCode.value.trim()
+
+  // Client-side validation
+  if (!otpValue) {
+    otpError.value = 'Please enter the 6-digit code.'
+    return
+  }
+  if (!/^\d{6}$/.test(otpValue)) {
+    // Check for exactly 6 digits
+    otpError.value = 'Code must be exactly 6 digits.'
+    return
+  }
+
+  const success = await authStore.verifyMfa(otpValue) // Use trimmed value
 
   if (success) {
     router.push('/dashboard')
   } else {
-    // Clear OTP input on failure to allow retry
-    otpCode.value = ''
+    // If verifyMfa failed, assume the error message belongs to the OTP input
+    otpError.value = error.value || 'Invalid code or verification failed.' // Copy error from store to local state
+    authStore.clearError() // Clear the global error state immediately
+    otpCode.value = '' // Clear the input field for retry
   }
-  // Error handling is done within the store, displayed via the template
 }
 </script>

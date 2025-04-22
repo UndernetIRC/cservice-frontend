@@ -107,39 +107,42 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function checkAuth(): Promise<boolean> {
     isAuthCheckComplete.value = false
+    console.log('[checkAuth] Starting auth check...')
     const rawToken = localStorage.getItem('access_token')
-    // No token means not authenticated
+
     if (!rawToken) {
+      console.log('[checkAuth] No token found in localStorage.')
       isAuthCheckComplete.value = true
       return false
     }
 
-    // Always attempt a silent refresh to validate refresh token cookie
+    console.log('[checkAuth] Token found, attempting refresh...')
     try {
-      const response = await apiService.refreshToken()
-      const newToken = (response.data as JwtResponse).access_token
-      localStorage.setItem('access_token', newToken)
-      accessToken.value = newToken
-    } catch {
+      await apiService.refreshToken()
+      console.log('[checkAuth] Token refresh successful.')
+    } catch (err) {
+      console.error('[checkAuth] Token refresh failed:', err)
       clearAuth()
       isAuthCheckComplete.value = true
       return false
     }
 
-    // If user info already fetched, skip re-fetch
     if (isAuthenticated.value && userInfo.value) {
+      console.log('[checkAuth] User info already exists, skipping fetch.')
       isAuthCheckComplete.value = true
       return true
     }
 
+    console.log('[checkAuth] Fetching user info...')
     try {
-      // Fetch user info and mark authenticated
       await fetchUserInfo()
+      console.log('[checkAuth] fetchUserInfo successful.')
       return isAuthenticated.value
     } catch {
-      clearAuth()
+      console.error('[checkAuth] fetchUserInfo failed after refresh.')
       return false
     } finally {
+      console.log(`[checkAuth] Completed. isAuthCheckComplete: true`)
       isAuthCheckComplete.value = true
     }
   }
@@ -262,33 +265,48 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchUserInfo(): Promise<void> {
-    // No need to check isAuthenticated here, called internally after auth or by checkAuth
     isLoading.value = true
-    error.value = null // Clear previous errors before fetching
+    error.value = null
+    console.log('[fetchUserInfo] Starting fetch...')
 
     try {
       const data = await apiService.getMe()
+      console.log('[fetchUserInfo] /me response received:', data)
 
-      // Always get admin level from JWT token since it's not in /me response
       const token = localStorage.getItem('access_token')
+      console.log('[fetchUserInfo] Token from localStorage:', token ? 'Present' : 'Missing')
       if (token) {
         const decoded = decodeToken(token)
-        if (decoded && decoded.adm !== undefined) {
-          data.admin_level = decoded.adm
-          // console.log('Admin level from JWT token:', decoded.adm)
+        console.log('[fetchUserInfo] Decoded token payload:', decoded)
+
+        if (decoded) {
+          // Extract admin level if present
+          if (decoded.adm !== undefined) {
+            data.admin_level = decoded.adm
+          } else {
+            console.warn('[fetchUserInfo] No admin level (adm) found in JWT token')
+          }
+
+          // Extract scopes if present
+          if (decoded.scp !== undefined) {
+            data.scopes = decoded.scp
+          } else {
+            console.warn('[fetchUserInfo] No scopes (scp) found in JWT token')
+          }
         } else {
-          console.warn('No admin level (adm) found in JWT token')
+          console.warn('[fetchUserInfo] Failed to decode JWT token')
         }
       } else {
-        console.warn('No access token found for fetchUserInfo')
-        // If no token, we shouldn't be able to fetch user info (API should 401)
-        // Throw an error to be caught below, ensuring clean-up
+        console.warn('[fetchUserInfo] No access token found in localStorage')
         throw new Error('No access token available for fetching user info.')
       }
 
       userInfo.value = data
-      isAuthenticated.value = true // Mark as authenticated *after* successful fetch
-      console.log('Updated user info with admin level:', userInfo.value)
+      isAuthenticated.value = true
+      console.log(
+        '[fetchUserInfo] Final userInfo state set:',
+        JSON.parse(JSON.stringify(userInfo.value)),
+      )
     } catch (err) {
       const axiosError = err as ApiError
       console.error('Failed to fetch user info:', axiosError)
