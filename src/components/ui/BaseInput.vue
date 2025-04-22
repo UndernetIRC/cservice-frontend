@@ -15,11 +15,7 @@
     <label
       :for="id"
       class="absolute text-sm duration-300 transform -translate-y-6 scale-75 top-3 z-10 origin-[0] left-3 px-1 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 pointer-events-none"
-      :class="
-        error
-          ? 'text-red-500 peer-focus:text-red-500 peer-focus:bg-slate-800'
-          : 'text-slate-500 peer-placeholder-shown:text-slate-500 peer-focus:text-primary peer-focus:bg-slate-800'
-      "
+      :class="['bg-slate-800', error ? 'text-red-500' : 'text-slate-500 peer-focus:text-slate-100']"
     >
       {{ label }}
     </label>
@@ -46,6 +42,12 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string | number): void
 }>()
+
+if (import.meta.env.DEV) {
+  console.log('BaseInput props:', props)
+
+  console.log('BaseInput emit defined:', emit)
+}
 </script>
 
 <style scoped>
