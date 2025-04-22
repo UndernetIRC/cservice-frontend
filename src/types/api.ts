@@ -88,6 +88,6 @@ export interface RegisterRequest {
   username: string // maxLength: 12, minLength: 2
   password: string // maxLength: 72, minLength: 10
   email: string
-  eula: boolean
+  aup: boolean // Acceptable Use Policy agreement
   coppa: boolean
 }

@@ -25,7 +25,7 @@
         </p>
         <router-link
           to="/login"
-          class="mt-4 inline-block font-medium text-primary hover:text-blue-500 transition-colors duration-150 ease-in-out"
+          class="mt-4 inline-block font-medium blue-link transition-colors duration-150 ease-in-out"
         >
           Proceed to Login
         </router-link>
@@ -106,23 +106,23 @@
             <div class="flex items-start">
               <div class="flex items-center h-5">
                 <input
-                  id="eula"
-                  v-model="formData.eula"
-                  name="eula"
+                  id="aup"
+                  v-model="formData.aup"
+                  name="aup"
                   type="checkbox"
                   required
                   class="focus:ring-primary h-4 w-4 text-primary border-slate-600 rounded bg-slate-700 focus:ring-offset-slate-800"
                 />
               </div>
               <div class="ml-3 text-sm">
-                <label for="eula" class="font-medium text-text-secondary"
+                <label for="aup" class="font-medium text-text-secondary"
                   >I agree to the
                   <button
                     type="button"
-                    @click="isEulaModalVisible = true"
-                    class="text-primary hover:text-blue-500 underline"
+                    @click="isAupModalVisible = true"
+                    class="blue-link underline"
                   >
-                    EULA
+                    Acceptable Use Policy (AUP)
                   </button>
                 </label>
               </div>
@@ -143,7 +143,7 @@
                   >I confirm I am over 13 or have parental consent (<button
                     type="button"
                     @click="isCoppaModalVisible = true"
-                    class="text-primary hover:text-blue-500 underline"
+                    class="blue-link underline"
                   >
                     COPPA</button
                   >)</label
@@ -175,7 +175,7 @@
           <span class="text-text-secondary">Already have an account? </span>
           <router-link
             to="/login"
-            class="font-medium text-primary hover:text-blue-500 transition-colors duration-150 ease-in-out"
+            class="font-medium blue-link transition-colors duration-150 ease-in-out"
           >
             Login here
           </router-link>
@@ -185,14 +185,14 @@
   </div>
 
   <!-- EULA Modal -->
-  <el-dialog v-model="isEulaModalVisible" title="End User License Agreement (EULA)" width="500px">
+  <el-dialog v-model="isAupModalVisible" title="Acceptable Use Policy (AUP)" width="500px">
     <p class="text-sm text-text-secondary">
-      Placeholder for EULA text. Please refer to the official UnderNET website for the full
-      agreement. By checking the box, you confirm you have read and agree to the terms.
+      Placeholder for Acceptable Use Policy text. Please refer to the official UnderNET website for
+      the full policy. By checking the box, you confirm you have read and agree to the terms.
     </p>
     <template #footer>
       <span class="dialog-footer">
-        <el-button type="primary" @click="isEulaModalVisible = false">Close</el-button>
+        <el-button type="primary" @click="isAupModalVisible = false">Close</el-button>
       </span>
     </template>
   </el-dialog>
@@ -233,12 +233,12 @@ const formData = reactive({
   email: '',
   password: '',
   passwordConfirm: '',
-  eula: false,
+  aup: false,
   coppa: false,
 })
 
 const isRegistrationComplete = ref(false)
-const isEulaModalVisible = ref(false)
+const isAupModalVisible = ref(false)
 const isCoppaModalVisible = ref(false)
 
 const errors = reactive({
@@ -261,7 +261,7 @@ const isFormValid = computed(() => {
     EMAIL_REGEX.test(formData.email) &&
     formData.password.length >= 10 &&
     formData.password.length <= 72 &&
-    formData.eula &&
+    formData.aup &&
     formData.coppa &&
     !errors.username &&
     !errors.email &&
@@ -351,8 +351,8 @@ watch(
   },
 )
 
-watch([() => formData.eula, () => formData.coppa], ([newEula, newCoppa]) => {
-  if (newEula && newCoppa) {
+watch([() => formData.aup, () => formData.coppa], ([newAup, newCoppa]) => {
+  if (newAup && newCoppa) {
     errors.agreements = ''
   }
 })
@@ -363,8 +363,9 @@ async function handleSignUpSubmit() {
   validatePassword(formData.password)
   validatePasswordConfirm(formData.passwordConfirm)
 
-  if (!formData.eula || !formData.coppa) {
-    errors.agreements = 'You must agree to the EULA and confirm COPPA compliance.'
+  if (!formData.aup || !formData.coppa) {
+    errors.agreements =
+      'You must agree to the Acceptable Use Policy (AUP) and confirm COPPA compliance.'
   }
 
   if (!isFormValid.value) {
@@ -379,7 +380,7 @@ async function handleSignUpSubmit() {
     username: formData.username,
     password: formData.password,
     email: formData.email,
-    eula: formData.eula,
+    eula: formData.aup,
     coppa: formData.coppa,
   })
 

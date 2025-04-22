@@ -4,12 +4,12 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Removed commented-out directives */
+/* Plugin-driven base, components, utilities are injected via @tailwindcss/vite */
 
-/* Base body styles applied directly */
+/* Keep existing direct body styles if preferred */
 body {
-  background-color: #0f172a; /* NEW: slate-900 = background */
-  color: #f1f5f9; /* NEW: slate-100 = text-primary */
+  background-color: #0f172a; /* slate-900 */
+  color: #f1f5f9; /* slate-100 */
 }
 
 /*
@@ -49,4 +49,11 @@ html.dark .el-pager li.is-active {
 html.dark .el-pagination button:disabled {
   background-color: #0f172a !important;
   color: #4b5563 !important;
+}
+
+.blue-link {
+  color: #1fa0f0;
+}
+.blue-link:hover {
+  color: #3fcfff;
 }

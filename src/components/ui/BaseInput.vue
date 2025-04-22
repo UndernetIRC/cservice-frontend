@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { withDefaults, defineProps, defineEmits } from 'vue'
+import {} from 'vue'
 
 interface Props {
   modelValue: string | number
@@ -45,7 +45,6 @@ const emit = defineEmits<{
 
 if (import.meta.env.DEV) {
   console.log('BaseInput props:', props)
-
   console.log('BaseInput emit defined:', emit)
 }
 </script>

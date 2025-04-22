@@ -19,7 +19,7 @@
       <p>{{ error }}</p>
       <button
         @click="fetchUserInfo"
-        class="mt-4 px-4 py-2 text-sm font-medium rounded-md text-white bg-primary hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors duration-150 ease-in-out"
+        class="mt-4 px-4 py-2 text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors duration-150 ease-in-out"
       >
         Retry
       </button>

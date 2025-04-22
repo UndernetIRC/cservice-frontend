@@ -81,7 +81,7 @@
         <span class="text-text-secondary">Don't have an account? </span>
         <router-link
           to="/signup"
-          class="font-medium text-primary hover:text-blue-500 transition-colors duration-150 ease-in-out"
+          class="font-medium blue-link transition-colors duration-150 ease-in-out"
         >
           Sign up
         </router-link>
