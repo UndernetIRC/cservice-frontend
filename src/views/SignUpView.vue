@@ -117,7 +117,7 @@
                 required
                 minlength="10"
                 maxlength="72"
-                class="peer block w-full px-3 py-3 appearance-none rounded-md border bg-transparent placeholder-transparent text-text-primary focus:outline-none focus:ring-0 sm:text-sm"
+                class="peer block w-full px-3 py-3 appearance-none rounded-md border bg-transparent placeholder-transparent text-text-primary focus:outline-none focus:ring-0 sm:text-sm data-[com-onepassword-filled]:bg-clip-text"
                 :class="
                   errors.password
                     ? 'border-red-500 focus:border-red-500'
@@ -150,7 +150,7 @@
                 type="password"
                 autocomplete="new-password"
                 required
-                class="peer block w-full px-3 py-3 appearance-none rounded-md border bg-transparent placeholder-transparent text-text-primary focus:outline-none focus:ring-0 sm:text-sm"
+                class="peer block w-full px-3 py-3 appearance-none rounded-md border bg-transparent placeholder-transparent text-text-primary focus:outline-none focus:ring-0 sm:text-sm data-[com-onepassword-filled]:bg-clip-text"
                 :class="
                   errors.passwordConfirm
                     ? 'border-red-500 focus:border-red-500'
@@ -473,3 +473,19 @@ async function handleSignUpSubmit() {
   }
 }
 </script>
+
+<style scoped>
+/* Override browser default autofill styles - Attempt 3 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  /* Force text color */
+  -webkit-text-fill-color: #f1f5f9 !important; /* text-primary */
+  /* Use box-shadow to overlay the background */
+  -webkit-box-shadow: 0 0 0 30px #1e293b inset !important; /* slate-800 */
+  box-shadow: 0 0 0 30px #1e293b inset !important; /* slate-800 */
+  /* Explicitly set caret color */
+  caret-color: #f1f5f9 !important; /* text-primary */
+}
+</style>
