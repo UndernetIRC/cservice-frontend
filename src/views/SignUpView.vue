@@ -36,140 +36,66 @@
         <h2 class="text-center text-3xl font-bold tracking-tight text-text-primary mb-8">
           Create your Account
         </h2>
-        <form class="space-y-8" @submit.prevent="handleSignUpSubmit">
+        <form class="space-y-6" @submit.prevent="handleSignUpSubmit">
           <!-- Username Field -->
           <div>
-            <div class="relative z-0">
-              <input
-                id="username"
-                v-model="formData.username"
-                name="username"
-                type="text"
-                autocomplete="username"
-                required
-                minlength="2"
-                maxlength="12"
-                class="peer block w-full px-3 py-3 appearance-none rounded-md border bg-transparent placeholder-transparent text-text-primary focus:outline-none focus:ring-0 sm:text-sm"
-                :class="
-                  errors.username
-                    ? 'border-red-500 focus:border-red-500'
-                    : 'border-slate-600 focus:border-primary'
-                "
-                placeholder=" "
-              />
-              <label
-                for="username"
-                class="absolute text-sm duration-300 transform -translate-y-6 scale-75 top-3 z-10 origin-[0] left-3 px-1 peer-focus:bg-slate-800 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-slate-500 peer-focus:scale-75 peer-focus:-translate-y-6 pointer-events-none"
-                :class="
-                  errors.username
-                    ? 'text-red-500 peer-focus:text-red-500'
-                    : 'text-slate-500 peer-focus:text-primary'
-                "
-              >
-                Username (2-12 chars, alphanumeric)
-              </label>
-            </div>
+            <BaseInput
+              id="username"
+              v-model="formData.username"
+              label="Username (2-12 chars, alphanumeric)"
+              type="text"
+              autocomplete="username"
+              required
+              :minlength="2"
+              :maxlength="12"
+              :error="errors.username"
+            />
             <p v-if="errors.username" class="mt-1 text-xs text-red-400">{{ errors.username }}</p>
           </div>
 
           <!-- Email Field -->
           <div>
-            <div class="relative z-0">
-              <input
-                id="email"
-                v-model="formData.email"
-                name="email"
-                type="email"
-                autocomplete="email"
-                required
-                class="peer block w-full px-3 py-3 appearance-none rounded-md border bg-transparent placeholder-transparent text-text-primary focus:outline-none focus:ring-0 sm:text-sm"
-                :class="
-                  errors.email
-                    ? 'border-red-500 focus:border-red-500'
-                    : 'border-slate-600 focus:border-primary'
-                "
-                placeholder=" "
-              />
-              <label
-                for="email"
-                class="absolute text-sm duration-300 transform -translate-y-6 scale-75 top-3 z-10 origin-[0] left-3 px-1 peer-focus:bg-slate-800 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-slate-500 peer-focus:scale-75 peer-focus:-translate-y-6 pointer-events-none"
-                :class="
-                  errors.email
-                    ? 'text-red-500 peer-focus:text-red-500'
-                    : 'text-slate-500 peer-focus:text-primary'
-                "
-              >
-                Email Address
-              </label>
-            </div>
+            <BaseInput
+              id="email"
+              v-model="formData.email"
+              label="Email Address"
+              type="email"
+              autocomplete="email"
+              required
+              :error="errors.email"
+            />
             <p v-if="errors.email" class="mt-1 text-xs text-red-400">{{ errors.email }}</p>
           </div>
 
           <!-- Password Field -->
           <div>
-            <div class="relative z-0">
-              <input
-                id="password"
-                v-model="formData.password"
-                name="password"
-                type="password"
-                autocomplete="new-password"
-                required
-                minlength="10"
-                maxlength="72"
-                class="peer block w-full px-3 py-3 appearance-none rounded-md border bg-transparent placeholder-transparent text-text-primary focus:outline-none focus:ring-0 sm:text-sm data-[com-onepassword-filled]:bg-clip-text"
-                :class="
-                  errors.password
-                    ? 'border-red-500 focus:border-red-500'
-                    : 'border-slate-600 focus:border-primary'
-                "
-                placeholder=" "
-              />
-              <label
-                for="password"
-                class="absolute text-sm duration-300 transform -translate-y-6 scale-75 top-3 z-10 origin-[0] left-3 px-1 peer-focus:bg-slate-800 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-slate-500 peer-focus:scale-75 peer-focus:-translate-y-6 pointer-events-none"
-                :class="
-                  errors.password
-                    ? 'text-red-500 peer-focus:text-red-500'
-                    : 'text-slate-500 peer-focus:text-primary'
-                "
-              >
-                Password (min 10 chars)
-              </label>
-            </div>
+            <BaseInput
+              id="password"
+              v-model="formData.password"
+              label="Password (min 10 chars)"
+              type="password"
+              autocomplete="new-password"
+              required
+              :minlength="10"
+              :maxlength="72"
+              :error="errors.password"
+              data-com-onepassword-filled=""
+            />
             <p v-if="errors.password" class="mt-1 text-xs text-red-400">{{ errors.password }}</p>
           </div>
 
           <!-- Confirm Password Field -->
           <div>
-            <div class="relative z-0">
-              <input
-                id="passwordConfirm"
-                v-model="formData.passwordConfirm"
-                name="passwordConfirm"
-                type="password"
-                autocomplete="new-password"
-                required
-                class="peer block w-full px-3 py-3 appearance-none rounded-md border bg-transparent placeholder-transparent text-text-primary focus:outline-none focus:ring-0 sm:text-sm data-[com-onepassword-filled]:bg-clip-text"
-                :class="
-                  errors.passwordConfirm
-                    ? 'border-red-500 focus:border-red-500'
-                    : 'border-slate-600 focus:border-primary'
-                "
-                placeholder=" "
-              />
-              <label
-                for="passwordConfirm"
-                class="absolute text-sm duration-300 transform -translate-y-6 scale-75 top-3 z-10 origin-[0] left-3 px-1 peer-focus:bg-slate-800 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-slate-500 peer-focus:scale-75 peer-focus:-translate-y-6 pointer-events-none"
-                :class="
-                  errors.passwordConfirm
-                    ? 'text-red-500 peer-focus:text-red-500'
-                    : 'text-slate-500 peer-focus:text-primary'
-                "
-              >
-                Confirm Password
-              </label>
-            </div>
+            <BaseInput
+              id="passwordConfirm"
+              v-model="formData.passwordConfirm"
+              label="Confirm Password"
+              type="password"
+              autocomplete="new-password"
+              required
+              :error="errors.passwordConfirm"
+              data-com-onepassword-filled=""
+            />
             <p v-if="errors.passwordConfirm" class="mt-1 text-xs text-red-400">
               {{ errors.passwordConfirm }}
             </p>
@@ -295,17 +221,18 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
-import { ElDialog, ElButton } from 'element-plus' // Import Element Plus components
-import { useDebounceFn } from '@vueuse/core' // Import debounce utility
+import { ElDialog, ElButton } from 'element-plus'
+import { useDebounceFn } from '@vueuse/core'
+import BaseInput from '@/components/ui/BaseInput.vue'
 
 const authStore = useAuthStore()
-const { isLoading, error: apiError } = storeToRefs(authStore) // Renamed store error to avoid conflict
+const { isLoading, error: apiError } = storeToRefs(authStore)
 
 const formData = reactive({
   username: '',
   email: '',
   password: '',
-  passwordConfirm: '', // Added confirm password field
+  passwordConfirm: '',
   eula: false,
   coppa: false,
 })
@@ -314,20 +241,17 @@ const isRegistrationComplete = ref(false)
 const isEulaModalVisible = ref(false)
 const isCoppaModalVisible = ref(false)
 
-// Validation errors state
 const errors = reactive({
   username: '',
   email: '',
   password: '',
-  passwordConfirm: '', // Added confirm password error
-  agreements: '', // For EULA/COPPA
+  passwordConfirm: '',
+  agreements: '',
 })
 
-// Validation Regex
 const USERNAME_REGEX = /^[a-zA-Z0-9]+$/
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-// Computed property for overall form validity
 const isFormValid = computed(() => {
   return (
     formData.username.length >= 2 &&
@@ -339,16 +263,15 @@ const isFormValid = computed(() => {
     formData.password.length <= 72 &&
     formData.eula &&
     formData.coppa &&
-    !errors.username && // Check individual errors
+    !errors.username &&
     !errors.email &&
     !errors.password &&
-    formData.passwordConfirm.length > 0 && // Check confirm password has input
-    formData.password === formData.passwordConfirm && // Check passwords match
-    !errors.passwordConfirm // Check confirm password has no specific error
+    formData.passwordConfirm.length > 0 &&
+    formData.password === formData.passwordConfirm &&
+    !errors.passwordConfirm
   )
 })
 
-// --- Validation Functions ---
 function validateUsername(newVal: string) {
   if (newVal.length === 0) {
     errors.username = 'Username is required.'
@@ -391,47 +314,43 @@ function validatePasswordConfirm(newVal: string) {
   }
 }
 
-// --- Debounced Validation Functions ---
 const debouncedValidateUsername = useDebounceFn(validateUsername, 500)
 const debouncedValidateEmail = useDebounceFn(validateEmail, 500)
 const debouncedValidatePassword = useDebounceFn(validatePassword, 500)
-const debouncedValidatePasswordConfirm = useDebounceFn(validatePasswordConfirm, 500) // Added debounced confirm validation
+const debouncedValidatePasswordConfirm = useDebounceFn(validatePasswordConfirm, 500)
 
-// --- Watchers ---
 watch(
   () => formData.username,
   (newVal) => {
-    errors.username = '' // Clear error immediately
+    errors.username = ''
     debouncedValidateUsername(newVal)
   },
 )
 watch(
   () => formData.email,
   (newVal) => {
-    errors.email = '' // Clear error immediately
+    errors.email = ''
     debouncedValidateEmail(newVal)
   },
 )
 watch(
   () => formData.password,
   (newVal) => {
-    errors.password = '' // Clear error immediately
+    errors.password = ''
     debouncedValidatePassword(newVal)
-    // Re-validate confirm password whenever password changes
     if (formData.passwordConfirm.length > 0) {
-      validatePasswordConfirm(formData.passwordConfirm) // Use immediate validation here for responsiveness
+      validatePasswordConfirm(formData.passwordConfirm)
     }
   },
 )
 watch(
   () => formData.passwordConfirm,
   (newVal) => {
-    errors.passwordConfirm = '' // Clear confirm error immediately
+    errors.passwordConfirm = ''
     debouncedValidatePasswordConfirm(newVal)
   },
 )
 
-// Watch agreements (no debounce needed for checkboxes)
 watch([() => formData.eula, () => formData.coppa], ([newEula, newCoppa]) => {
   if (newEula && newCoppa) {
     errors.agreements = ''
@@ -439,8 +358,7 @@ watch([() => formData.eula, () => formData.coppa], ([newEula, newCoppa]) => {
 })
 
 async function handleSignUpSubmit() {
-  // Explicitly trigger validation checks on submit attempt
-  validateUsername(formData.username) // Trigger immediate validation
+  validateUsername(formData.username)
   validateEmail(formData.email)
   validatePassword(formData.password)
   validatePasswordConfirm(formData.passwordConfirm)
@@ -449,7 +367,6 @@ async function handleSignUpSubmit() {
     errors.agreements = 'You must agree to the EULA and confirm COPPA compliance.'
   }
 
-  // Check computed validity state before proceeding
   if (!isFormValid.value) {
     console.log('Form is invalid, submission blocked.')
     return
@@ -473,19 +390,3 @@ async function handleSignUpSubmit() {
   }
 }
 </script>
-
-<style scoped>
-/* Override browser default autofill styles - Attempt 3 */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
-  /* Force text color */
-  -webkit-text-fill-color: #f1f5f9 !important; /* text-primary */
-  /* Use box-shadow to overlay the background */
-  -webkit-box-shadow: 0 0 0 30px #1e293b inset !important; /* slate-800 */
-  box-shadow: 0 0 0 30px #1e293b inset !important; /* slate-800 */
-  /* Explicitly set caret color */
-  caret-color: #f1f5f9 !important; /* text-primary */
-}
-</style>
