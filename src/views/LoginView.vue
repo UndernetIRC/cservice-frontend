@@ -1,23 +1,19 @@
 <template>
-  <!-- Header: Logo Only -->
-  <header class="w-full p-4 sm:p-6 md:p-8 absolute top-0 left-0 z-10">
-    <div class="max-w-7xl mx-auto flex justify-start items-center">
-      <!-- Logo Link to Landing Page -->
-      <router-link to="/" class="flex-shrink-0 flex items-center">
-        <!-- Logo height adjusted for header -->
-        <img src="/images/logo.png" alt="UnderNET Logo" class="h-8 w-auto" />
-      </router-link>
-    </div>
-  </header>
-
   <div
-    class="min-h-screen flex items-center justify-center bg-background pt-24 pb-12 px-4 sm:px-6 lg:px-8"
+    class="min-h-screen flex items-center justify-center bg-background pt-12 pb-12 px-4 sm:px-6 lg:px-8"
   >
     <div class="max-w-md w-full space-y-8 p-10 bg-slate-800 rounded-xl shadow-2xl">
+      <div class="flex flex-row items-center justify-center mb-6 space-x-3">
+        <!-- Logo Link to Landing Page -->
+        <router-link to="/">
+          <img src="/images/logo.png" alt="UnderNET Logo" class="h-12 w-auto" />
+        </router-link>
+        <h1 class="text-xl font-semibold text-text-secondary">UnderNET Cservice</h1>
+      </div>
       <div>
         <h2
           v-if="!isMfaRequired"
-          class="mt-6 text-center text-3xl font-bold tracking-tight text-text-primary"
+          class="text-center text-3xl font-bold tracking-tight text-text-primary"
         >
           Sign in to UnderNET Portal
         </h2>
@@ -92,6 +88,17 @@
           </button>
         </div>
       </form>
+
+      <!-- Sign Up Link -->
+      <div v-if="!isMfaRequired" class="text-sm text-center">
+        <span class="text-text-secondary">Don't have an account? </span>
+        <router-link
+          to="/signup"
+          class="font-medium text-primary hover:text-blue-500 transition-colors duration-150 ease-in-out"
+        >
+          Sign up
+        </router-link>
+      </div>
 
       <!-- MFA Form -->
       <form v-else class="mt-8 space-y-8" @submit.prevent="handleMfaSubmit">

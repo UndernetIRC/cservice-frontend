@@ -81,3 +81,12 @@ export type ApiError = AxiosError<{
   code?: number
   details?: unknown
 }>
+
+// Added based on swagger.yaml for /register endpoint
+export interface RegisterRequest {
+  username: string // maxLength: 12, minLength: 2
+  password: string // maxLength: 72, minLength: 10
+  email: string
+  eula: boolean
+  coppa: boolean
+}

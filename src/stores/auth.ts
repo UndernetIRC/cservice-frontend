@@ -8,6 +8,7 @@ import type {
   MfaRequiredResponse,
   FactorVerifyRequest,
   ApiError,
+  RegisterRequest,
 } from '@/types/api'
 import { decodeToken } from '@/utils/jwt'
 import { useTimeoutFn } from '@vueuse/core'
@@ -301,6 +302,42 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Action to clear only the error state
+  function clearError() {
+    error.value = null
+  }
+
+  // Action for user registration
+  async function register(registrationData: RegisterRequest): Promise<boolean> {
+    isLoading.value = true
+    error.value = null // Clear previous errors
+
+    try {
+      const response = await apiService.register(registrationData)
+
+      // Check for successful creation (status 201)
+      if (response.status === 201) {
+        console.log('Registration successful. Please check email for verification.')
+        // No tokens are returned on registration, user needs to verify email and then login
+        return true // Indicate successful API call
+      } else {
+        // Handle unexpected success codes if any
+        console.warn('Registration API returned unexpected status:', response.status)
+        error.value = `Registration failed with status: ${response.status}`
+        return false
+      }
+    } catch (err) {
+      const axiosError = err as ApiError
+      console.error('Registration failed:', axiosError)
+      error.value =
+        axiosError.response?.data?.message ||
+        'An error occurred during registration. Please check your input and try again.'
+      return false // Indicate failure
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     userInfo,
     isAuthenticated,
@@ -317,5 +354,7 @@ export const useAuthStore = defineStore('auth', () => {
     checkAuth,
     fetchUserInfo,
     verifyMfa, // Expose MFA verification action
+    register, // Export register action
+    clearError, // Export clearError action
   }
 })

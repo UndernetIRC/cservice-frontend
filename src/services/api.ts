@@ -11,6 +11,7 @@ import type {
   FactorVerifyRequest,
   FactorVerifyResponse,
   RefreshResponse,
+  RegisterRequest,
 } from '@/types/api'
 
 const api = axios.create({
@@ -127,6 +128,14 @@ const apiService = {
 
   deleteRole: async (id: number) => {
     await api.delete(`/admin/roles/${id}`)
+  },
+
+  // User Registration
+  register: async (data: RegisterRequest) => {
+    // The API returns 201 Created on success with no body, or error codes.
+    // We'll return the full response to allow the store to check the status code.
+    const response = await api.post('/register', data)
+    return response
   },
 }
 

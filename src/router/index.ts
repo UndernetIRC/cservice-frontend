@@ -1,52 +1,61 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import type { RouteRecordRaw } from 'vue-router'
+
+const routes: Array<RouteRecordRaw> = [
+  {
+    path: '/',
+    name: 'landing',
+    component: () => import('@/views/LandingView.vue'),
+    meta: { requiresAuth: false },
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import('@/views/LoginView.vue'),
+    meta: { requiresGuest: true },
+  },
+  {
+    path: '/signup',
+    name: 'signup',
+    component: () => import('@/views/SignUpView.vue'),
+    meta: { requiresGuest: true },
+  },
+  {
+    path: '/dashboard',
+    name: 'dashboard',
+    component: () => import('@/views/DashboardView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/channels',
+    name: 'channels',
+    component: () => import('@/views/ChannelsView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/admin',
+    name: 'admin-layout',
+    component: () => import('@/views/admin/AdminLayout.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+    children: [
+      {
+        path: '',
+        name: 'admin-dashboard',
+        redirect: { name: 'admin-roles' },
+      },
+      {
+        path: 'roles',
+        name: 'admin-roles',
+        component: () => import('@/views/admin/RolesView.vue'),
+      },
+    ],
+  },
+]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      name: 'landing',
-      component: () => import('@/views/LandingView.vue'),
-      meta: { requiresAuth: false },
-    },
-    {
-      path: '/login',
-      name: 'login',
-      component: () => import('@/views/LoginView.vue'),
-      meta: { requiresAuth: false },
-    },
-    {
-      path: '/dashboard',
-      name: 'dashboard',
-      component: () => import('@/views/DashboardView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/channels',
-      name: 'channels',
-      component: () => import('@/views/ChannelsView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/admin',
-      name: 'admin-layout',
-      component: () => import('@/views/admin/AdminLayout.vue'),
-      meta: { requiresAuth: true, requiresAdmin: true },
-      children: [
-        {
-          path: '',
-          name: 'admin-dashboard',
-          redirect: { name: 'admin-roles' },
-        },
-        {
-          path: 'roles',
-          name: 'admin-roles',
-          component: () => import('@/views/admin/RolesView.vue'),
-        },
-      ],
-    },
-  ],
+  routes,
 })
 
 router.beforeEach(async (to, from, next) => {
