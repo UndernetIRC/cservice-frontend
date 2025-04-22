@@ -379,8 +379,9 @@ async function handleSignUpSubmit() {
   const success = await authStore.register({
     username: formData.username,
     password: formData.password,
+    confirm_password: formData.passwordConfirm,
     email: formData.email,
-    eula: formData.aup,
+    aup: formData.aup,
     coppa: formData.coppa,
   })
 

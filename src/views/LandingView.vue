@@ -51,7 +51,7 @@
         <div class="grid grid-cols-1 gap-8 mt-10 text-center md:mt-12 md:grid-cols-3">
           <!-- Feature Card 1 -->
           <div
-            class="p-6 transition-shadow duration-200 ease-in-out border rounded-lg shadow-lg bg-background border-slate-700 hover:shadow-indigo-500/10">
+            class="p-6 transition-shadow duration-200 ease-in-out border rounded-lg shadow-lg bg-slate-800 ackground border-slate-700 hover:shadow-indigo-500/10">
             <svg class="w-12 h-12 mx-auto text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -65,7 +65,7 @@
           </div>
           <!-- Feature Card 2 -->
           <div
-            class="p-6 transition-shadow duration-200 ease-in-out border rounded-lg shadow-lg bg-background border-slate-700 hover:shadow-indigo-500/10">
+            class="p-6 transition-shadow duration-200 ease-in-out border rounded-lg shadow-lg bg-slate-800 border-slate-700 hover:shadow-indigo-500/10">
             <svg class="w-12 h-12 mx-auto text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -78,7 +78,7 @@
           </div>
           <!-- Feature Card 3 -->
           <div
-            class="p-6 transition-shadow duration-200 ease-in-out border rounded-lg shadow-lg bg-background border-slate-700 hover:shadow-indigo-500/10">
+            class="p-6 transition-shadow duration-200 ease-in-out border rounded-lg shadow-lg bg-slate-800 border-slate-700 hover:shadow-indigo-500/10">
             <svg class="w-12 h-12 mx-auto text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

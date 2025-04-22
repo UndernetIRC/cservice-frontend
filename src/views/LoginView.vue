@@ -12,7 +12,7 @@
       </div>
       <div>
         <h2
-          v-if="!isMfaRequired"
+          v-if="!hasMfaStarted"
           class="text-center text-3xl font-bold tracking-tight text-text-primary"
         >
           Sign in to UnderNET Portal
@@ -23,7 +23,7 @@
       </div>
 
       <!-- Standard Login Form -->
-      <form v-if="!isMfaRequired" class="mt-8 space-y-8" @submit.prevent="handleLoginSubmit">
+      <form v-if="!hasMfaStarted" class="mt-8 space-y-8" @submit.prevent="handleLoginSubmit">
         <!-- Username Field -->
         <div>
           <BaseInput
@@ -77,7 +77,7 @@
       </form>
 
       <!-- Sign Up Link -->
-      <div v-if="!isMfaRequired" class="text-sm text-center">
+      <div v-if="!hasMfaStarted" class="text-sm text-center">
         <span class="text-text-secondary">Don't have an account? </span>
         <router-link
           to="/signup"
@@ -143,6 +143,13 @@ const username = ref('')
 const password = ref('')
 const otpCode = ref('')
 const otpError = ref('')
+
+const hasMfaStarted = ref(false)
+watch(isMfaRequired, (value) => {
+  if (value) {
+    hasMfaStarted.value = true
+  }
+})
 
 // Watcher to clear OTP error when user types
 watch(otpCode, () => {
