@@ -48,12 +48,13 @@ api.interceptors.response.use(
     const originalRequest = error.config
 
     // If error is 401 and we haven't tried to refresh token yet
-    // and the request is not to the refresh endpoint or login endpoint
+    // and the request is not to the refresh endpoint or login or factor verify endpoints
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
       !originalRequest.url?.includes('/authn/refresh') &&
-      !originalRequest.url?.includes('/login')
+      !originalRequest.url?.includes('/login') &&
+      !originalRequest.url?.includes('/authn/factor_verify')
     ) {
       originalRequest._retry = true
 
@@ -71,7 +72,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         // If refresh fails, clear token
         localStorage.removeItem('access_token')
-        // Let the auth store handle the redirect
+        // Let the auth store handle the redirect or errors
         return Promise.reject(refreshError)
       }
     }
@@ -94,9 +95,11 @@ const apiService = {
   },
 
   factorVerify: async (data: FactorVerifyRequest) => {
-    // This endpoint returns JWT tokens on success
-    const response = await api.post<FactorVerifyResponse>('/authn/factor_verify', data)
-    return response // Return the whole response object
+    // This endpoint may return JWT tokens or 4xx errors (400,401,429); resolve all <500 statuses so OTP errors don't throw
+    const response = await api.post<FactorVerifyResponse>('/authn/factor_verify', data, {
+      validateStatus: (status) => status < 500,
+    })
+    return response // Return the full Axios response including status and headers
   },
 
   getMe: async () => {

@@ -104,9 +104,7 @@
             pattern="[0-9]*"
             autocomplete="one-time-code"
             required
-            :error="otpError"
           />
-          <p v-if="otpError" class="mt-1 text-xs text-red-400">{{ otpError }}</p>
         </div>
 
         <div>
@@ -120,7 +118,7 @@
         </div>
       </form>
 
-      <!-- Common Error Display (Should now only show non-OTP errors) -->
+      <!-- Common Error Display (Login errors only) -->
       <div v-if="error" class="text-red-400 text-sm text-center mt-4">
         {{ error }}
       </div>
@@ -129,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
@@ -137,7 +135,40 @@ import BaseInput from '@/components/ui/BaseInput.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const { error, isLoading, isMfaRequired } = storeToRefs(authStore)
+const { error, isLoading, isMfaRequired, mfaErrorStatus } = storeToRefs(authStore)
+
+// Set up navigation guard for smooth transitions
+// We'll use a router global guard but keep it scoped to this component's lifecycle
+let removeRouterGuard: (() => void) | null = null
+
+onMounted(() => {
+  // Add the router guard when component is mounted
+  removeRouterGuard = router.beforeEach((to, from, next) => {
+    // Only run this when navigating away from the login page
+    if (from.path === '/login' && to.path !== '/login') {
+      console.log('Navigating away from login page')
+      next()
+
+      // Delay error clearing to make transition smoother
+      setTimeout(() => {
+        console.log('Clearing login errors after navigation started')
+        error.value = null
+        otpError.value = ''
+        authStore.clearError()
+      }, 100)
+    } else {
+      next()
+    }
+  })
+})
+
+// Clean up the router guard when component is unmounted
+onUnmounted(() => {
+  if (removeRouterGuard) {
+    removeRouterGuard()
+    console.log('Removed login page router guard')
+  }
+})
 
 const username = ref('')
 const password = ref('')
@@ -151,10 +182,11 @@ watch(isMfaRequired, (value) => {
   }
 })
 
-// Watcher to clear OTP error when user types
-watch(otpCode, () => {
-  if (otpError.value) {
-    otpError.value = ''
+// Clear login credentials whenever we exit the MFA form
+watch(hasMfaStarted, (started) => {
+  if (!started) {
+    username.value = ''
+    password.value = ''
   }
 })
 
@@ -169,32 +201,101 @@ const handleLoginSubmit = async () => {
   }
 }
 
+// Create a function to explicitly set OTP error
+function setOtpError(message: string) {
+  otpError.value = message
+  error.value = message
+  console.log('setOtpError called with:', message, 'otpError is now:', otpError.value)
+}
+
 const handleMfaSubmit = async () => {
-  otpError.value = '' // Clear previous inline OTP error
-  authStore.clearError() // Clear previous global error
+  console.log('MFA submit with code:', otpCode.value)
+
+  // Start fresh: clear previous inline OTP feedback and any global error
+  setOtpError('')
+  authStore.clearError()
 
   const otpValue = otpCode.value.trim()
 
   // Client-side validation
   if (!otpValue) {
-    otpError.value = 'Please enter the 6-digit code.'
+    setOtpError('Please enter the 6-digit code.')
     return
   }
   if (!/^\d{6}$/.test(otpValue)) {
     // Check for exactly 6 digits
-    otpError.value = 'Code must be exactly 6 digits.'
+    setOtpError('Code must be exactly 6 digits.')
     return
   }
 
-  const success = await authStore.verifyMfa(otpValue) // Use trimmed value
+  const success = await authStore.verifyMfa(otpValue)
+  console.log(
+    'MFA verify result:',
+    success,
+    'Error status:',
+    mfaErrorStatus.value,
+    'Error:',
+    error.value,
+  )
 
   if (success) {
     router.push('/dashboard')
-  } else {
-    // If verifyMfa failed, assume the error message belongs to the OTP input
-    otpError.value = error.value || 'Invalid code or verification failed.' // Copy error from store to local state
-    authStore.clearError() // Clear the global error state immediately
-    otpCode.value = '' // Clear the input field for retry
+    return
   }
+
+  // Handle different error scenarios
+  if (mfaErrorStatus.value === 400) {
+    // Session expired/invalid state token: back to login
+    hasMfaStarted.value = false
+    otpCode.value = ''
+    return
+  }
+
+  // For 401 (invalid OTP) or 429 (rate limit), show the error inline
+  if (mfaErrorStatus.value === 401) {
+    setOtpError('Invalid verification code. Please try again.')
+  } else if (mfaErrorStatus.value === 429) {
+    setOtpError('Too many attempts. Please wait before trying again.')
+  } else {
+    setOtpError('Verification failed. Please try again.')
+  }
+
+  console.log('Final otpError value:', otpError.value)
+  // Don't reset otpCode here - it would clear the error message
 }
+
+// Add a watcher that only clears errors when the user types something new
+// (not when the form is submitted or initialized)
+watch(otpCode, (newValue, oldValue) => {
+  // Only clear the error if:
+  // 1. There's an error message
+  // 2. User is actively changing the input (not just initialization)
+  // 3. It's not changing from empty to something else (which happens on initialization)
+  if (otpError.value && oldValue !== '' && newValue !== oldValue) {
+    console.log('User is typing, clearing error')
+    setOtpError('')
+  }
+})
+
+// Watch for changes in the auth store error and MFA error status
+watch([() => authStore.error, () => mfaErrorStatus.value], ([newError, newStatus]) => {
+  console.log('Error state changed:', newError, 'Status:', newStatus)
+  if (hasMfaStarted.value) {
+    if (newError) {
+      setOtpError(newError)
+      console.log('Set otpError from authStore.error:', otpError.value)
+    } else if (newStatus === 401) {
+      setOtpError('Invalid verification code. Please try again.')
+      console.log('Set otpError for 401 status:', otpError.value)
+    } else if (newStatus === 429) {
+      setOtpError('Too many attempts. Please wait before trying again.')
+      console.log('Set otpError for 429 status:', otpError.value)
+    }
+  }
+})
+
+// Add a watcher to track changes to otpError itself
+watch(otpError, (newValue) => {
+  console.log('otpError changed to:', newValue)
+})
 </script>

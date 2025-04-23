@@ -25,6 +25,8 @@ export const useAuthStore = defineStore('auth', () => {
   const isMfaRequired = ref(false)
   const mfaStateToken = ref<string | null>(null)
   const mfaExpiresAt = ref<string | null>(null)
+  const mfaErrorStatus = ref<number | null>(null)
+  const mfaRateLimitReset = ref<number | null>(null)
 
   const isAdmin = computed(() => {
     return (userInfo.value?.admin_level ?? 0) >= 800
@@ -197,40 +199,104 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function verifyMfa(otp: string): Promise<boolean> {
+    // Reset previous MFA error statuses
+    mfaErrorStatus.value = null
+    mfaRateLimitReset.value = null
     if (!mfaStateToken.value || isMfaTokenExpired.value) {
+      // Client-side expired/invalid session
+      mfaErrorStatus.value = 400
       error.value = 'MFA session expired or invalid. Please log in again.'
-      clearAuth() // Clear everything including MFA state
+      clearAuth()
       return false
     }
 
     isLoading.value = true
-    error.value = null // Clear previous errors specifically for MFA step
-
+    error.value = null
     try {
       const requestData: FactorVerifyRequest = {
-        state_token: mfaStateToken.value,
-        otp: otp,
+        state_token: mfaStateToken.value!,
+        otp,
       }
+      // Treat 4xx statuses (400,401,429) as resolved so we can handle them manually
       const response = await apiService.factorVerify(requestData)
-      const jwtData = response.data as JwtResponse // Should be JwtResponse on success
+      const status = response.status
+      mfaErrorStatus.value = status
 
-      setAuthentication(jwtData)
-      await fetchUserInfo()
-      console.log('MFA verification successful, tokens set.')
-      return true // Indicate successful verification and login
-    } catch (err) {
-      const axiosError = err as ApiError
-      console.error('MFA verification failed:', axiosError)
-      // Keep MFA state if it's just an invalid OTP (401), otherwise clear?
-      // For now, let's keep the state token valid for retries on 401.
-      if (axiosError.response?.status === 401) {
-        error.value = axiosError.response?.data?.message || 'Invalid OTP code. Please try again.'
-      } else {
-        error.value = axiosError.response?.data?.message || 'MFA verification failed.'
-        // Consider clearing auth completely for non-401 errors during MFA
-        // clearAuth();
+      if (status === 200) {
+        // Successful MFA verification
+        const jwtData = response.data as JwtResponse
+        setAuthentication(jwtData)
+        await fetchUserInfo()
+        console.log('MFA verification successful, tokens set.')
+        return true
       }
-      return false // Indicate MFA verification failure
+      if (status === 400) {
+        // Session expired/invalid: clear auth first, then set error so it persists
+        clearAuth()
+        error.value = 'MFA session expired or invalid. Please log in again.'
+        return false
+      }
+      if (status === 401) {
+        // Invalid OTP
+        const dataResp = response.data as unknown
+        let otpMsg = 'Invalid OTP code. Please try again.'
+        if (
+          typeof dataResp === 'object' &&
+          dataResp !== null &&
+          'message' in dataResp &&
+          typeof (dataResp as { message: unknown }).message === 'string'
+        ) {
+          otpMsg = (dataResp as { message: string }).message
+        }
+        error.value = otpMsg
+        return false
+      }
+      if (status === 429) {
+        // Rate limited
+        const resetHeader = response.headers['x-ratelimit-reset'] as string | undefined
+        let resetTimestamp: number | null = null
+        if (resetHeader) {
+          const parsed = parseInt(resetHeader, 10)
+          if (!isNaN(parsed)) {
+            resetTimestamp = parsed
+          } else {
+            const date = new Date(resetHeader)
+            if (!isNaN(date.getTime())) {
+              resetTimestamp = Math.floor(date.getTime() / 1000)
+            }
+          }
+        }
+        mfaRateLimitReset.value = resetTimestamp
+        if (resetTimestamp) {
+          const date = new Date(resetTimestamp * 1000)
+          const hh = String(date.getHours()).padStart(2, '0')
+          const mm = String(date.getMinutes()).padStart(2, '0')
+          const ss = String(date.getSeconds()).padStart(2, '0')
+          error.value = `Too many attempts. Please wait until ${hh}:${mm}:${ss}.`
+        } else {
+          error.value = 'Too many attempts. Please wait and try again later.'
+        }
+        return false
+      }
+      // Other 2xx or unexpected 4xx statuses
+      const otherResp = response.data as unknown
+      let defaultMsg = 'MFA verification failed. Please try again.'
+      if (
+        typeof otherResp === 'object' &&
+        otherResp !== null &&
+        'message' in otherResp &&
+        typeof (otherResp as { message: unknown }).message === 'string'
+      ) {
+        defaultMsg = (otherResp as { message: string }).message
+      }
+      error.value = defaultMsg
+      return false
+    } catch (err) {
+      // Network/server errors
+      console.error('Unexpected MFA error:', err)
+      error.value = 'An unexpected error occurred. Please try again later.'
+      clearAuth()
+      return false
     } finally {
       isLoading.value = false
     }
@@ -374,5 +440,7 @@ export const useAuthStore = defineStore('auth', () => {
     verifyMfa, // Expose MFA verification action
     register, // Export register action
     clearError, // Export clearError action
+    mfaErrorStatus, // Export MFA error status code
+    mfaRateLimitReset, // Export MFA rate limit reset timestamp
   }
 })
