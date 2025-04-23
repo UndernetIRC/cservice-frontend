@@ -22,6 +22,43 @@ const api = axios.create({
   },
 })
 
+// Constants for token refresh coordination
+const REFRESH_LOCK_KEY = 'token_refresh_lock'
+const LOCK_CHECK_INTERVAL = 100 // Check every 100ms
+const MAX_LOCK_CHECKS = 50 // Maximum number of attempts
+
+// Refresh lock functions
+function isLockTaken(): boolean {
+  const lockData = localStorage.getItem(REFRESH_LOCK_KEY)
+  if (!lockData) return false
+
+  try {
+    const parsed = JSON.parse(lockData)
+    return parsed.expiry > Date.now()
+  } catch (error) {
+    console.error('[API] Error parsing lock data:', error)
+    return false
+  }
+}
+
+function waitForLockRelease(): Promise<void> {
+  return new Promise((resolve) => {
+    let attempts = 0
+
+    const checkLock = () => {
+      if (!isLockTaken() || attempts >= MAX_LOCK_CHECKS) {
+        resolve()
+        return
+      }
+
+      attempts++
+      setTimeout(checkLock, LOCK_CHECK_INTERVAL)
+    }
+
+    checkLock()
+  })
+}
+
 // Add request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
@@ -57,6 +94,20 @@ api.interceptors.response.use(
       !originalRequest.url?.includes('/authn/factor_verify')
     ) {
       originalRequest._retry = true
+
+      // Before refreshing, check if another tab is already refreshing
+      if (isLockTaken()) {
+        console.log('[API] Token refresh lock is taken, waiting for other tab to complete')
+        await waitForLockRelease()
+
+        // After waiting, check if token was updated in localStorage
+        const freshToken = localStorage.getItem('access_token')
+        if (freshToken) {
+          console.log('[API] Token was updated by another tab, using new token')
+          originalRequest.headers.Authorization = `Bearer ${freshToken}`
+          return api(originalRequest)
+        }
+      }
 
       try {
         // Direct API call to refresh token

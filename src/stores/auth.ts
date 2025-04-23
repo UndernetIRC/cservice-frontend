@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import apiService from '@/services/api'
 import type {
   LoginRequest,
@@ -13,6 +13,12 @@ import type {
 import { decodeToken } from '@/utils/jwt'
 import { useTimeoutFn } from '@vueuse/core'
 import router from '@/router'
+
+// Constants for token refresh locking
+const LOCK_KEY = 'token_refresh_lock'
+const LOCK_EXPIRY = 10000 // 10 seconds max to hold the lock
+const LOCK_CHECK_INTERVAL = 100 // Check lock every 100ms
+const MAX_LOCK_ATTEMPTS = 50 // Maximum number of attempts to acquire the lock
 
 export const useAuthStore = defineStore('auth', () => {
   const userInfo = ref<MeResponse | null>(null)
@@ -44,44 +50,253 @@ export const useAuthStore = defineStore('auth', () => {
   // track access token for auto-refresh scheduling
   const accessToken = ref<string | null>(localStorage.getItem('access_token'))
   let refreshTimer: ReturnType<typeof useTimeoutFn> | null = null
+  const lockCheckTimer: number | null = null
+  const isRefreshing = ref(false)
+
+  // Storage event handler for cross-tab communication
+  function handleStorageEvent(event: StorageEvent) {
+    if (event.key === 'access_token') {
+      if (!event.newValue) {
+        // Token was removed in another tab (logout)
+        console.log('[Storage Event] Token removed in another tab, clearing auth state')
+        clearAuth()
+        router.push('/login')
+      } else if (event.newValue !== accessToken.value) {
+        // Token was updated in another tab
+        console.log('[Storage Event] Token updated in another tab, synchronizing')
+        accessToken.value = event.newValue
+        // No need to call scheduleRefresh() since the watcher will trigger
+      }
+    } else if (event.key === LOCK_KEY && !event.newValue) {
+      // Lock was released, check if we need to refresh
+      checkAndRefreshIfNeeded()
+    }
+  }
+
+  // Try to acquire the lock for token refresh
+  function acquireLock(): Promise<boolean> {
+    return new Promise((resolve) => {
+      const instanceId = Date.now().toString() + Math.random().toString(36).substring(2, 9)
+      const expiryTime = Date.now() + LOCK_EXPIRY
+      const lockValue = JSON.stringify({ id: instanceId, expiry: expiryTime })
+
+      let attempts = 0
+      const attemptLock = () => {
+        // Check if lock exists and is valid
+        const existingLock = localStorage.getItem(LOCK_KEY)
+
+        if (!existingLock) {
+          // No lock exists, try to acquire it
+          localStorage.setItem(LOCK_KEY, lockValue)
+
+          // Verify we got the lock (another tab might have set it simultaneously)
+          setTimeout(() => {
+            const currentLock = localStorage.getItem(LOCK_KEY)
+            if (currentLock === lockValue) {
+              console.log('[Lock] Successfully acquired token refresh lock')
+              resolve(true)
+              return
+            } else {
+              // Someone else got the lock first, continue trying
+              checkAndRetry()
+            }
+          }, 10)
+        } else {
+          // Lock exists, check if it's expired
+          try {
+            const lockData = JSON.parse(existingLock)
+            if (lockData.expiry < Date.now()) {
+              // Lock is expired, override it
+              console.log('[Lock] Found expired lock, overriding')
+              localStorage.setItem(LOCK_KEY, lockValue)
+
+              // Verify we got the lock
+              setTimeout(() => {
+                const currentLock = localStorage.getItem(LOCK_KEY)
+                if (currentLock === lockValue) {
+                  console.log('[Lock] Successfully acquired token refresh lock after expiry')
+                  resolve(true)
+                  return
+                } else {
+                  // Someone else got the lock first, continue trying
+                  checkAndRetry()
+                }
+              }, 10)
+            } else {
+              // Lock is still valid, wait and retry
+              checkAndRetry()
+            }
+          } catch (error) {
+            // Invalid lock format, override it
+            console.error('[Lock] Error parsing lock data:', error)
+            localStorage.setItem(LOCK_KEY, lockValue)
+            console.log('[Lock] Found invalid lock format, overriding')
+            resolve(true)
+            return
+          }
+        }
+      }
+
+      const checkAndRetry = () => {
+        attempts++
+        if (attempts >= MAX_LOCK_ATTEMPTS) {
+          console.warn('[Lock] Failed to acquire lock after maximum attempts')
+          resolve(false)
+          return
+        }
+
+        setTimeout(attemptLock, LOCK_CHECK_INTERVAL)
+      }
+
+      attemptLock()
+    })
+  }
+
+  // Release the lock
+  function releaseLock() {
+    localStorage.removeItem(LOCK_KEY)
+    console.log('[Lock] Released token refresh lock')
+  }
+
+  // Check if token needs refresh and do it if needed
+  async function checkAndRefreshIfNeeded() {
+    const token = localStorage.getItem('access_token')
+
+    // Skip if no token or already refreshing
+    if (!token || isRefreshing.value) {
+      return false
+    }
+
+    // Decode token to check expiration
+    const decoded = decodeToken(token)
+    if (!decoded || !decoded.exp) {
+      return false
+    }
+
+    const expiresAtMs = decoded.exp * 1000
+    const nowMs = Date.now()
+    const timeUntilExpiryMs = expiresAtMs - nowMs
+
+    // Refresh if token expires in less than 2 minutes
+    if (timeUntilExpiryMs < 120000) {
+      return await refreshAccessToken()
+    }
+
+    return false
+  }
 
   // call refresh endpoint and update access token
-  async function refreshAccessToken() {
+  async function refreshAccessToken(): Promise<boolean> {
+    // Skip if already refreshing
+    if (isRefreshing.value) {
+      console.log('[Token Refresh] Already in progress, skipping')
+      return false
+    }
+
+    isRefreshing.value = true
+
     try {
+      console.log('[Token Refresh] Attempting to acquire lock')
+      const lockAcquired = await acquireLock()
+
+      if (!lockAcquired) {
+        console.log('[Token Refresh] Could not acquire lock, waiting for other tab')
+        isRefreshing.value = false
+        return false
+      }
+
+      // Double-check if token still needs refresh (might have been refreshed by another tab)
+      const currentToken = localStorage.getItem('access_token')
+      if (currentToken && currentToken !== accessToken.value) {
+        console.log('[Token Refresh] Token already refreshed by another tab')
+        accessToken.value = currentToken
+        releaseLock()
+        isRefreshing.value = false
+        return true
+      }
+
+      // Check if token is still valid enough (>2min) after acquiring lock
+      if (currentToken) {
+        const decoded = decodeToken(currentToken)
+        if (decoded && decoded.exp) {
+          const expiresAtMs = decoded.exp * 1000
+          const nowMs = Date.now()
+          if (expiresAtMs - nowMs > 120000) {
+            console.log('[Token Refresh] Token still valid, skipping refresh')
+            releaseLock()
+            isRefreshing.value = false
+            return true
+          }
+        }
+      }
+
+      console.log('[Token Refresh] Refreshing token')
       const response = await apiService.refreshToken()
       const newToken = (response.data as JwtResponse).access_token
+
       localStorage.setItem('access_token', newToken)
       accessToken.value = newToken
-    } catch {
+      console.log('[Token Refresh] Successfully refreshed token')
+
+      return true
+    } catch (error) {
+      console.error('[Token Refresh] Failed:', error)
       clearAuth()
+      return false
+    } finally {
+      releaseLock()
+      isRefreshing.value = false
     }
   }
 
   // schedule background refresh when token is near expiry (60-90s before)
+  function scheduleRefresh(token: string | null) {
+    if (refreshTimer) {
+      refreshTimer.stop()
+      refreshTimer = null
+    }
+
+    if (!token) return
+
+    const decoded = decodeToken(token)
+    if (!decoded || !decoded.exp) return
+
+    const expiresAtMs = decoded.exp * 1000
+    const nowMs = Date.now()
+
+    // Add jitter to reduce thundering herd (60-90s before expiry)
+    const jitter = Math.floor(Math.random() * 30000) // 0-30s of jitter
+    const baseOffsetMs = 60000 // 60s
+    const offsetMs = baseOffsetMs + jitter
+
+    const delayMs = expiresAtMs - nowMs - offsetMs
+
+    // Only schedule refresh if the token expires more than 10s from now
+    // (if less, we'll refresh immediately)
+    if (delayMs > 10000) {
+      console.log(
+        `[Token Refresh] Scheduled refresh in ${Math.floor(delayMs / 1000)}s with ${Math.floor(jitter / 1000)}s jitter`,
+      )
+      refreshTimer = useTimeoutFn(async () => {
+        await refreshAccessToken()
+      }, delayMs)
+      refreshTimer.start()
+    } else if (delayMs > 0) {
+      // Token expires soon but not immediately
+      console.log('[Token Refresh] Token expires soon, refreshing now')
+      refreshAccessToken()
+    } else {
+      // Token already expired
+      console.log('[Token Refresh] Token already expired, refreshing immediately')
+      refreshAccessToken()
+    }
+  }
+
+  // watch for token changes and schedule refresh
   watch(
     accessToken,
     (token) => {
-      if (refreshTimer) {
-        refreshTimer.stop()
-        refreshTimer = null
-      }
-
-      if (token) {
-        const decoded = decodeToken(token)
-        if (decoded && decoded.exp) {
-          const expiresAtMs = decoded.exp * 1000
-          const nowMs = Date.now()
-          const offsetSeconds = 60 + Math.random() * 30
-          const delayMs = expiresAtMs - nowMs - offsetSeconds * 1000
-
-          if (delayMs > 0) {
-            refreshTimer = useTimeoutFn(refreshAccessToken, delayMs)
-            refreshTimer.start()
-          } else {
-            refreshAccessToken()
-          }
-        }
-      }
+      scheduleRefresh(token)
     },
     { immediate: true },
   )
@@ -107,6 +322,21 @@ export const useAuthStore = defineStore('auth', () => {
     mfaExpiresAt.value = null
   }
 
+  // Set up event listeners for cross-tab communication
+  onMounted(() => {
+    window.addEventListener('storage', handleStorageEvent)
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('storage', handleStorageEvent)
+    if (refreshTimer) {
+      refreshTimer.stop()
+    }
+    if (lockCheckTimer) {
+      clearTimeout(lockCheckTimer)
+    }
+  })
+
   async function checkAuth(): Promise<boolean> {
     isAuthCheckComplete.value = false
     console.log('[checkAuth] Starting auth check...')
@@ -118,15 +348,44 @@ export const useAuthStore = defineStore('auth', () => {
       return false
     }
 
-    console.log('[checkAuth] Token found, attempting refresh...')
-    try {
-      await apiService.refreshToken()
-      console.log('[checkAuth] Token refresh successful.')
-    } catch (err) {
-      console.error('[checkAuth] Token refresh failed:', err)
+    // Check if token is valid before trying to refresh
+    const decoded = decodeToken(rawToken)
+    if (!decoded || !decoded.exp) {
+      console.log('[checkAuth] Invalid token format in localStorage, clearing.')
       clearAuth()
       isAuthCheckComplete.value = true
       return false
+    }
+
+    // If token is still valid for more than 5 minutes, skip refresh
+    // TODO: This timeout needs to be configurable and tuned
+    const expiresAtMs = decoded.exp * 1000
+    const nowMs = Date.now()
+    const timeUntilExpiryMs = expiresAtMs - nowMs
+
+    if (timeUntilExpiryMs < 300000) {
+      // Less than 5 minutes until expiry
+      console.log('[checkAuth] Token expires soon, attempting refresh...')
+
+      try {
+        // Use our token refresh mechanism that handles multiple tabs
+        const refreshResult = await refreshAccessToken()
+        if (!refreshResult) {
+          console.log('[checkAuth] Token refresh skipped (likely handled by another tab).')
+          // Continue with current token as it might have been refreshed by another tab
+        } else {
+          console.log('[checkAuth] Token refresh successful.')
+        }
+      } catch (err) {
+        console.error('[checkAuth] Token refresh failed:', err)
+        clearAuth()
+        isAuthCheckComplete.value = true
+        return false
+      }
+    } else {
+      console.log(
+        `[checkAuth] Token valid for ${Math.floor(timeUntilExpiryMs / 60000)} more minutes, skipping refresh.`,
+      )
     }
 
     if (isAuthenticated.value && userInfo.value) {
