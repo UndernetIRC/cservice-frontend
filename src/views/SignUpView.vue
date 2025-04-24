@@ -153,6 +153,18 @@
             <p v-if="errors.agreements" class="text-xs text-red-400">{{ errors.agreements }}</p>
           </div>
 
+          <!-- reCAPTCHA error message -->
+          <div v-if="recaptchaError" class="text-xs text-red-400 text-center">
+            {{ recaptchaError }}
+            <button
+              type="button"
+              @click="loadRecaptcha"
+              class="ml-2 text-blue-400 hover:text-blue-300 underline"
+            >
+              Retry
+            </button>
+          </div>
+
           <!-- Submit Button -->
           <div>
             <button
@@ -218,12 +230,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import { ElDialog, ElButton } from 'element-plus'
 import { useDebounceFn } from '@vueuse/core'
 import BaseInput from '@/components/ui/BaseInput.vue'
+import { getRecaptchaToken, loadRecaptchaScript } from '@/utils/recaptcha'
+import { RECAPTCHA_CONFIG } from '@/config/recaptcha'
 
 const authStore = useAuthStore()
 const { isLoading, error: apiError } = storeToRefs(authStore)
@@ -240,6 +254,8 @@ const formData = reactive({
 const isRegistrationComplete = ref(false)
 const isAupModalVisible = ref(false)
 const isCoppaModalVisible = ref(false)
+const recaptchaError = ref<string | null>(null)
+const isRecaptchaLoaded = ref(false)
 
 const errors = reactive({
   username: '',
@@ -357,6 +373,26 @@ watch([() => formData.aup, () => formData.coppa], ([newAup, newCoppa]) => {
   }
 })
 
+// Function to load reCAPTCHA
+async function loadRecaptcha() {
+  if (RECAPTCHA_CONFIG.enabled && RECAPTCHA_CONFIG.siteKey) {
+    recaptchaError.value = null
+    try {
+      await loadRecaptchaScript()
+      isRecaptchaLoaded.value = true
+    } catch (error) {
+      console.error('Failed to load reCAPTCHA script:', error)
+      recaptchaError.value = 'Failed to load security verification. Please try again.'
+      isRecaptchaLoaded.value = false
+    }
+  }
+}
+
+// Load reCAPTCHA on component mount
+onMounted(() => {
+  loadRecaptcha()
+})
+
 async function handleSignUpSubmit() {
   validateUsername(formData.username)
   validateEmail(formData.email)
@@ -376,6 +412,22 @@ async function handleSignUpSubmit() {
   isRegistrationComplete.value = false
   authStore.clearError()
 
+  // Get reCAPTCHA token if enabled
+  let recaptchaToken: string | null = null
+  if (RECAPTCHA_CONFIG.enabled && RECAPTCHA_CONFIG.siteKey) {
+    try {
+      recaptchaToken = await getRecaptchaToken('register')
+      if (!recaptchaToken) {
+        recaptchaError.value = 'Security verification failed. Please try again.'
+        return
+      }
+    } catch (error) {
+      console.error('reCAPTCHA error:', error)
+      recaptchaError.value = 'Security verification failed. Please try again.'
+      return
+    }
+  }
+
   const success = await authStore.register({
     username: formData.username,
     password: formData.password,
@@ -383,6 +435,7 @@ async function handleSignUpSubmit() {
     email: formData.email,
     aup: formData.aup,
     coppa: formData.coppa,
+    recaptcha_token: recaptchaToken || undefined,
   })
 
   if (success) {

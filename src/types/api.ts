@@ -91,4 +91,5 @@ export interface RegisterRequest {
   email: string
   aup: boolean // Acceptable Use Policy agreement
   coppa: boolean
+  recaptcha_token?: string // Google reCAPTCHA v3 token
 }
