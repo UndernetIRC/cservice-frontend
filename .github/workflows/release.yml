@@ -25,5 +25,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
+          platforms: linux/amd64,linux/arm64,linux/armhf
           file: Dockerfile.production
-          tags: Ratler/cservice-frontend:latest,Ratler/cservice-frontend:${{ github.ref_name }}
+          tags: | 
+            ratler/cservice-frontend:latest
+            ratler/cservice-frontend:${{ github.ref_name }}
