@@ -26,4 +26,4 @@ jobs:
         with:
           push: true
           file: Dockerfile.production
-          tags: Ratler/cservice-api:latest,Ratler/cservice-api:${{ github.ref_name }}
+          tags: Ratler/cservice-frontend:latest,Ratler/cservice-frontend:${{ github.ref_name }}
