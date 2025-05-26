@@ -3,12 +3,14 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import apiService from '@/services/api'
 import type {
   LoginRequest,
-  MeResponse,
+  CurrentUserResponse,
   JwtResponse,
   MfaRequiredResponse,
   FactorVerifyRequest,
   ApiError,
   RegisterRequest,
+  LogoutRequest,
+  ActivateRequest,
 } from '@/types/api'
 import { decodeToken } from '@/utils/jwt'
 import { useTimeoutFn } from '@vueuse/core'
@@ -21,7 +23,7 @@ const LOCK_CHECK_INTERVAL = 100 // Check lock every 100ms
 const MAX_LOCK_ATTEMPTS = 50 // Maximum number of attempts to acquire the lock
 
 export const useAuthStore = defineStore('auth', () => {
-  const userInfo = ref<MeResponse | null>(null)
+  const userInfo = ref<CurrentUserResponse | null>(null)
   const isAuthenticated = ref(false)
   const isAuthCheckComplete = ref(false)
   const error = ref<string | null>(null)
@@ -595,8 +597,8 @@ export const useAuthStore = defineStore('auth', () => {
     console.log('[fetchUserInfo] Starting fetch...')
 
     try {
-      const data = await apiService.getMe()
-      console.log('[fetchUserInfo] /me response received:', data)
+      const data = await apiService.getCurrentUser()
+      console.log('[fetchUserInfo] /user response received:', data)
 
       const token = localStorage.getItem('access_token')
       console.log('[fetchUserInfo] Token from localStorage:', token ? 'Present' : 'Missing')
@@ -681,6 +683,36 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Action for account activation
+  async function activate(activationData: ActivateRequest): Promise<boolean> {
+    isLoading.value = true
+    error.value = null // Clear previous errors
+
+    try {
+      const response = await apiService.activate(activationData)
+
+      // Check for successful activation (status 200)
+      if (response.status === 200) {
+        console.log('Account activation successful.')
+        return true // Indicate successful API call
+      } else {
+        // Handle unexpected success codes if any
+        console.warn('Activation API returned unexpected status:', response.status)
+        error.value = `Activation failed with status: ${response.status}`
+        return false
+      }
+    } catch (err) {
+      const axiosError = err as ApiError
+      console.error('Activation failed:', axiosError)
+      error.value =
+        axiosError.response?.data?.message ||
+        'An error occurred during activation. Please try again.'
+      return false // Indicate failure
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     userInfo,
     isAuthenticated,
@@ -698,6 +730,7 @@ export const useAuthStore = defineStore('auth', () => {
     fetchUserInfo,
     verifyMfa, // Expose MFA verification action
     register, // Export register action
+    activate, // Export activate action
     clearError, // Export clearError action
     mfaErrorStatus, // Export MFA error status code
     mfaRateLimitReset, // Export MFA rate limit reset timestamp

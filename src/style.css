@@ -57,3 +57,8 @@ html.dark .el-pagination button:disabled {
 .blue-link:hover {
   color: #3fcfff;
 }
+
+/* Hide reCAPTCHA badge by default - it will be shown only on pages that need it */
+.grecaptcha-badge {
+  display: none !important;
+}

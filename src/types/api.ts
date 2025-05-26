@@ -40,7 +40,7 @@ export interface ChannelInfo {
   access: number
 }
 
-export interface MeResponse {
+export interface CurrentUserResponse {
   id: number
   username: string
   email: string
@@ -91,5 +91,11 @@ export interface RegisterRequest {
   email: string
   aup: boolean // Acceptable Use Policy agreement
   coppa: boolean
+  recaptcha_token?: string // Google reCAPTCHA v3 token
+}
+
+// Added for /activate endpoint
+export interface ActivateRequest {
+  token: string
   recaptcha_token?: string // Google reCAPTCHA v3 token
 }

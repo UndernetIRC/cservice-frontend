@@ -230,15 +230,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
 import { ElDialog, ElButton } from 'element-plus'
 import { useDebounceFn } from '@vueuse/core'
 import BaseInput from '@/components/ui/BaseInput.vue'
-import { getRecaptchaToken, loadRecaptchaScript } from '@/utils/recaptcha'
+import {
+  getRecaptchaToken,
+  loadRecaptchaScript,
+  hideRecaptcha,
+  showRecaptcha,
+} from '@/utils/recaptcha'
 import { RECAPTCHA_CONFIG } from '@/config/recaptcha'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const { isLoading, error: apiError } = storeToRefs(authStore)
 
@@ -391,6 +398,43 @@ async function loadRecaptcha() {
 // Load reCAPTCHA on component mount
 onMounted(() => {
   loadRecaptcha()
+
+  // Show reCAPTCHA badge when on signup page
+  showRecaptcha()
+})
+
+// Set up navigation guard for error cleanup and reCAPTCHA cleanup
+let removeRouterGuard: (() => void) | null = null
+
+onMounted(() => {
+  // Add the router guard when component is mounted
+  removeRouterGuard = router.beforeEach((to, from, next) => {
+    // Only run this when navigating away from the signup page
+    if (from.path === '/signup' && to.path !== '/signup') {
+      console.log('Navigating away from signup page, clearing errors and reCAPTCHA')
+      // Clear errors immediately when navigation starts
+      authStore.clearError()
+
+      // Hide reCAPTCHA badge when leaving signup page
+      hideRecaptcha()
+    }
+    next()
+  })
+})
+
+// Clean up when component is unmounted
+onUnmounted(() => {
+  // Clean up the router guard
+  if (removeRouterGuard) {
+    removeRouterGuard()
+    console.log('Removed signup page router guard')
+  }
+
+  // Clear any remaining auth errors
+  authStore.clearError()
+
+  // Hide reCAPTCHA badge when component unmounts
+  hideRecaptcha()
 })
 
 async function handleSignUpSubmit() {

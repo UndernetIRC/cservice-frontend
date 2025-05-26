@@ -2,7 +2,6 @@ import axios from 'axios'
 import type {
   LoginRequest,
   LoginResponse,
-  MeResponse,
   LogoutRequest,
   Role,
   CreateRoleRequest,
@@ -12,6 +11,8 @@ import type {
   FactorVerifyResponse,
   RefreshResponse,
   RegisterRequest,
+  ActivateRequest,
+  CurrentUserResponse,
 } from '@/types/api'
 
 const api = axios.create({
@@ -153,8 +154,8 @@ const apiService = {
     return response // Return the full Axios response including status and headers
   },
 
-  getMe: async () => {
-    const response = await api.get<MeResponse>('/me')
+  getCurrentUser: async () => {
+    const response = await api.get<CurrentUserResponse>('/user')
     return response.data
   },
 
@@ -189,6 +190,14 @@ const apiService = {
     // The API returns 201 Created on success with no body, or error codes.
     // We'll return the full response to allow the store to check the status code.
     const response = await api.post('/register', data)
+    return response
+  },
+
+  // Account Activation
+  activate: async (data: ActivateRequest) => {
+    // The API returns 200 OK on success or error codes.
+    // We'll return the full response to allow the store to check the status code.
+    const response = await api.post('/activate', data)
     return response
   },
 }

@@ -24,7 +24,7 @@ export interface UserChannelResponse {
   name: string
 }
 
-export interface MeResponse {
+export interface CurrentUserResponse {
   id: number
   username: string
   email: string
