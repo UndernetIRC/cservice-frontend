@@ -13,6 +13,11 @@ import type {
   RegisterRequest,
   ActivateRequest,
   CurrentUserResponse,
+  ChangePasswordRequest,
+  EnrollTOTPRequest,
+  EnrollTOTPResponse,
+  ActivateTOTPRequest,
+  DisableTOTPRequest,
 } from '@/types/api'
 
 const api = axios.create({
@@ -198,6 +203,27 @@ const apiService = {
     // The API returns 200 OK on success or error codes.
     // We'll return the full response to allow the store to check the status code.
     const response = await api.post('/activate', data)
+    return response
+  },
+
+  // Security/Account Management
+  changePassword: async (data: ChangePasswordRequest) => {
+    const response = await api.put('/user/password', data)
+    return response
+  },
+
+  enrollTOTP: async (data: EnrollTOTPRequest) => {
+    const response = await api.post<EnrollTOTPResponse>('/user/2fa/enroll', data)
+    return response.data
+  },
+
+  activateTOTP: async (data: ActivateTOTPRequest) => {
+    const response = await api.post('/user/2fa/activate', data)
+    return response
+  },
+
+  disableTOTP: async (data: DisableTOTPRequest) => {
+    const response = await api.post('/user/2fa/disable', data)
     return response
   },
 }

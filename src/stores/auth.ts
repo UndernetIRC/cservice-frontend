@@ -9,7 +9,6 @@ import type {
   FactorVerifyRequest,
   ApiError,
   RegisterRequest,
-  LogoutRequest,
   ActivateRequest,
 } from '@/types/api'
 import { decodeToken } from '@/utils/jwt'
@@ -563,7 +562,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function logout(): Promise<void> {
+  async function logout(options: { logout_all?: boolean } = {}): Promise<void> {
     isLoading.value = true
     error.value = null // Clear previous errors
     const token = localStorage.getItem('access_token')
@@ -571,7 +570,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       // Attempt server-side logout only if a token exists
       if (token) {
-        await apiService.logout({}) // Call API first
+        await apiService.logout({ logout_all: options.logout_all || false }) // Call API first
         console.log('Server logout successful')
       } else {
         console.log('No token found, skipping server logout.')

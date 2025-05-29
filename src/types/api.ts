@@ -99,3 +99,28 @@ export interface ActivateRequest {
   token: string
   recaptcha_token?: string // Google reCAPTCHA v3 token
 }
+
+// Security/Account Management Types
+export interface ChangePasswordRequest {
+  current_password: string
+  new_password: string
+  confirm_password: string
+}
+
+export interface EnrollTOTPRequest {
+  current_password: string
+}
+
+export interface EnrollTOTPResponse {
+  qr_code_base64: string
+  secret: string
+}
+
+export interface ActivateTOTPRequest {
+  otp_code: string
+}
+
+export interface DisableTOTPRequest {
+  current_password: string
+  otp_code: string
+}

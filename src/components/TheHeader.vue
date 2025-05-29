@@ -66,40 +66,15 @@
               <MenuItems
                 class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-gray-700 ring-1 ring-black ring-opacity-5 focus:outline-none"
               >
-                <MenuItem v-slot="{ active }">
-                  <router-link
-                    to="/profile"
+                <MenuItem v-slot="{ active, close }">
+                  <button
+                    @click="handleNavigation('/dashboard', close)"
                     :class="[
                       active ? 'bg-gray-100 dark:bg-gray-600' : '',
-                      'flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200',
+                      'flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200',
                     ]"
                   >
-                    <!-- Profile Icon -->
-                    <svg
-                      class="mr-3 h-5 w-5 text-gray-400"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        fill-rule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0012 11z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                    Profile
-                  </router-link>
-                </MenuItem>
-                <MenuItem v-slot="{ active }">
-                  <router-link
-                    to="/account"
-                    :class="[
-                      active ? 'bg-gray-100 dark:bg-gray-600' : '',
-                      'flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200',
-                    ]"
-                  >
-                    <!-- Account Icon -->
+                    <!-- Dashboard Icon -->
                     <svg
                       class="mr-3 h-5 w-5 text-gray-400"
                       xmlns="http://www.w3.org/2000/svg"
@@ -112,21 +87,21 @@
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
-                        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                        d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"
                       />
                     </svg>
-                    Account
-                  </router-link>
+                    Dashboard
+                  </button>
                 </MenuItem>
-                <MenuItem v-slot="{ active }">
-                  <router-link
-                    to="/settings"
+                <MenuItem v-slot="{ active, close }">
+                  <button
+                    @click="handleNavigation('/account', close)"
                     :class="[
                       active ? 'bg-gray-100 dark:bg-gray-600' : '',
-                      'flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200',
+                      'flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200',
                     ]"
                   >
-                    <!-- Settings Icon -->
+                    <!-- Account Settings Icon -->
                     <svg
                       class="mr-3 h-5 w-5 text-gray-400"
                       xmlns="http://www.w3.org/2000/svg"
@@ -147,12 +122,14 @@
                         d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                       />
                     </svg>
-                    Settings
-                  </router-link>
+                    Account Settings
+                  </button>
                 </MenuItem>
-                <MenuItem v-slot="{ active }">
+                <!-- Divider -->
+                <div class="border-t border-gray-100 dark:border-gray-600 my-1"></div>
+                <MenuItem v-slot="{ active, close }">
                   <button
-                    @click="handleLogout"
+                    @click="handleLogoutWithClose(close)"
                     :class="[
                       active ? 'bg-gray-100 dark:bg-gray-600' : '',
                       'flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200',
@@ -265,22 +242,16 @@
         </div>
         <div class="space-y-1">
           <router-link
-            to="/profile"
+            to="/dashboard"
             class="block px-4 py-2 text-base font-medium text-text-secondary hover:bg-slate-700 hover:text-text-primary"
             @click="isMobileMenuOpen = false"
-            >Profile</router-link
+            >Dashboard</router-link
           >
           <router-link
             to="/account"
             class="block px-4 py-2 text-base font-medium text-text-secondary hover:bg-slate-700 hover:text-text-primary"
             @click="isMobileMenuOpen = false"
-            >Account</router-link
-          >
-          <router-link
-            to="/settings"
-            class="block px-4 py-2 text-base font-medium text-text-secondary hover:bg-slate-700 hover:text-text-primary"
-            @click="isMobileMenuOpen = false"
-            >Settings</router-link
+            >Account Settings</router-link
           >
           <button
             @click="handleMobileLogout"
@@ -319,11 +290,22 @@ const handleLogout = async () => {
   // Navigation is now handled within the authStore.logout() action
 }
 
+const handleLogoutWithClose = (close: () => void) => {
+  close()
+  handleLogout()
+}
+
 // Separate handler for mobile to ensure menu closes before navigation potentially changes layout
 const handleMobileLogout = () => {
   isMobileMenuOpen.value = false
   // Use nextTick or slight delay if needed, but usually logout handles redirect okay
   handleLogout()
+}
+
+const handleNavigation = (path: string, close: () => void) => {
+  close()
+  // Use nextTick or slight delay if needed, but usually navigation handles redirect okay
+  router.push(path)
 }
 </script>
 
