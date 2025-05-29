@@ -51,9 +51,14 @@ export interface CurrentUserResponse {
   is_superuser: boolean
   date_joined: string
   last_login: string
+  last_seen?: number
   admin_level?: number
   channels?: ChannelInfo[]
   scopes?: string[]
+  totp_enabled?: boolean
+  language_name?: string
+  language_code?: string
+  max_logins?: number
 }
 
 export interface Role {

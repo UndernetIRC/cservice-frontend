@@ -7,8 +7,8 @@ import type {
   EnrollTOTPResponse,
   ActivateTOTPRequest,
   DisableTOTPRequest,
+  ApiError,
 } from '@/types/api'
-import type { ApiError } from '@/types/auth'
 
 export const useSecurityStore = defineStore('security', () => {
   const isLoading = ref(false)
