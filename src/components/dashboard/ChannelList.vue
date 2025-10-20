@@ -22,9 +22,9 @@
           :key="channel.channel_id"
           class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-md border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-150 ease-in-out"
         >
-          <span class="text-gray-800 dark:text-gray-200">{{ channel.name }}</span>
+          <span class="text-gray-800 dark:text-gray-200">{{ channel.channel_name }}</span>
           <el-button
-            v-if="isOwner(channel.access)"
+            v-if="isOwner(channel.access_level)"
             type="primary"
             size="small"
             @click="handleEdit(channel)"
@@ -68,8 +68,8 @@ const searchQuery = ref('') // Ref for search input
 const filteredChannels = computed(() => {
   if (!props.channels) return []
   return props.channels
-    .filter((channel) => channel.name?.toLowerCase().includes(searchQuery.value.toLowerCase()))
-    .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+    .filter((channel) => channel.channel_name?.toLowerCase().includes(searchQuery.value.toLowerCase()))
+    .sort((a, b) => (a.channel_name || '').localeCompare(b.channel_name || ''))
 })
 
 const paginatedChannels = computed(() => {

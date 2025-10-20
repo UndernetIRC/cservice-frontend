@@ -36,8 +36,8 @@ export interface LogoutRequest {
 
 export interface ChannelInfo {
   channel_id: number
-  name: string
-  access: number
+  channel_name: string
+  access_level: number
 }
 
 export interface CurrentUserResponse {

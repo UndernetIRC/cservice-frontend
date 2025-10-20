@@ -99,6 +99,8 @@ const formatDate = (dateString?: string) => {
 
 onMounted(() => {
   console.log('Dashboard mounted, current userInfo:', userInfo.value)
+  console.log('Dashboard mounted, userInfo.channels:', userInfo.value?.channels)
+  console.log('Dashboard mounted, channels count:', userInfo.value?.channels?.length || 0)
   if (!userInfo.value) {
     console.log('No user data, fetching...')
     fetchUserInfo()

@@ -7,9 +7,9 @@
       <p>You don't have access to any channels yet.</p>
     </div>
     <div v-else class="channels-list">
-      <div v-for="channel in channels" :key="channel.id" class="channel-card">
-        <h3 class="channel-name">{{ channel.name }}</h3>
-        <p class="channel-description">{{ channel.description }}</p>
+      <div v-for="channel in channels" :key="channel.channel_id" class="channel-card">
+        <h3 class="channel-name">{{ channel.channel_name }}</h3>
+        <p class="channel-description">Access Level: {{ channel.access_level }}</p>
       </div>
     </div>
   </div>
@@ -17,15 +17,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import type { ChannelInfo } from '@/types/api'
 
-// Define a basic Channel interface
-interface Channel {
-  id: number
-  name: string
-  description: string
-}
-
-const channels = ref<Channel[]>([])
+const channels = ref<ChannelInfo[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 
