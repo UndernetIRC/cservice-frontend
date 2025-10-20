@@ -38,6 +38,8 @@ export interface ChannelInfo {
   channel_id: number
   channel_name: string
   access_level: number
+  member_count: number
+  joined_at: number
 }
 
 export interface CurrentUserResponse {
