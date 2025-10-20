@@ -1,10 +1,23 @@
 <template>
   <div
-    class="channel-card bg-gray-800 rounded-lg border border-gray-700 hover:border-gray-600 transition-all duration-200 hover:shadow-lg overflow-hidden"
+    class="channel-card relative bg-gradient-to-br from-gray-800 to-gray-850 rounded-lg border border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-900/20 hover:-translate-y-1 hover:scale-[1.02] overflow-hidden group"
   >
+    <!-- Animated gradient overlay for owned channels -->
+    <div
+      v-if="isOwner"
+      class="absolute inset-0 bg-gradient-to-r from-blue-600/5 via-cyan-600/5 to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+    ></div>
+
+    <!-- Accent bar for owned channels -->
+    <div
+      v-if="isOwner"
+      class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500 opacity-70"
+    ></div>
     <!-- Card Header -->
-    <div class="p-4 border-b border-gray-700 flex items-center justify-between">
-      <h3 class="text-lg font-semibold text-gray-100 truncate">{{ channel.channel_name }}</h3>
+    <div class="relative p-4 border-b border-gray-700/50 flex items-center justify-between backdrop-blur-sm">
+      <h3 class="text-lg font-semibold text-gray-100 truncate group-hover:text-white transition-colors">
+        {{ channel.channel_name }}
+      </h3>
       <div class="flex items-center gap-2 flex-shrink-0">
         <el-button
           v-if="isOwner"
@@ -39,53 +52,63 @@
     </div>
 
     <!-- Card Body -->
-    <div class="p-4 space-y-3">
-      <!-- Access Level Badge -->
-      <div class="flex items-center">
+    <div class="relative p-5 space-y-4">
+      <!-- Access Level Badge with Raw Level -->
+      <div class="flex items-center justify-between">
         <span
           :class="accessLevelBadgeClass"
-          class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
+          class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm group-hover:shadow-md transition-shadow"
         >
           {{ accessLevelText }}
+        </span>
+        <span class="text-xs font-mono text-gray-500 bg-gray-700/30 px-2 py-1 rounded">
+          {{ channel.access_level }}
         </span>
       </div>
 
       <!-- Member Count -->
-      <div class="flex items-center gap-2 text-gray-300">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="1.5"
-          stroke="currentColor"
-          class="w-5 h-5"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
-          />
-        </svg>
-        <span class="text-sm">{{ memberCountText }}</span>
+      <div class="flex items-center gap-3 text-gray-300 group-hover:text-gray-200 transition-colors">
+        <div class="p-2 bg-gray-700/50 rounded-lg group-hover:bg-gray-700 transition-colors">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-5 h-5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
+            />
+          </svg>
+        </div>
+        <span class="text-sm font-medium">{{ memberCountText }}</span>
       </div>
 
-      <!-- Join Date -->
-      <div class="flex items-center gap-2 text-gray-300">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="1.5"
-          stroke="currentColor"
-          class="w-5 h-5"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-          />
-        </svg>
-        <span class="text-sm">{{ joinDateText }}</span>
+      <!-- Added Date -->
+      <div class="flex items-center gap-3 text-gray-300 group-hover:text-gray-200 transition-colors">
+        <div class="p-2 bg-gray-700/50 rounded-lg group-hover:bg-gray-700 transition-colors">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="w-5 h-5"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xs text-gray-400 font-medium">Added</span>
+          <span class="text-sm font-medium">{{ joinDateText }}</span>
+        </div>
       </div>
     </div>
 

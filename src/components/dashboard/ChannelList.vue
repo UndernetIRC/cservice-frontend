@@ -189,12 +189,12 @@
     <div v-else class="divide-y divide-gray-700">
       <!-- Table Header -->
       <div class="bg-gray-750 p-4 hidden md:block">
-        <div class="flex items-center gap-4">
-          <div class="flex-1 text-sm font-semibold text-gray-300">Channel</div>
-          <div class="w-24 text-sm font-semibold text-gray-300">Access</div>
-          <div class="w-32 text-sm font-semibold text-gray-300">Members</div>
-          <div class="w-40 text-sm font-semibold text-gray-300">Joined</div>
-          <div class="w-auto text-sm font-semibold text-gray-300">Actions</div>
+        <div class="flex items-center">
+          <div class="flex-1 min-w-0 pr-4 text-sm font-semibold text-gray-300">Channel</div>
+          <div class="w-28 flex-shrink-0 px-2 text-sm font-semibold text-gray-300">Access</div>
+          <div class="w-36 flex-shrink-0 px-2 text-sm font-semibold text-gray-300">Members</div>
+          <div class="w-44 flex-shrink-0 px-2 text-sm font-semibold text-gray-300">Added</div>
+          <div class="w-32 flex-shrink-0 pl-2 text-sm font-semibold text-gray-300 text-right">Actions</div>
         </div>
       </div>
 

@@ -69,47 +69,47 @@ describe('Channel Helpers', () => {
   describe('formatJoinDate', () => {
     it('should format years correctly', () => {
       const twoYearsAgo = Math.floor((Date.now() - 2 * 365 * 24 * 60 * 60 * 1000) / 1000)
-      expect(formatJoinDate(twoYearsAgo)).toBe('Joined 2 years ago')
+      expect(formatJoinDate(twoYearsAgo)).toBe('2 years ago')
     })
 
     it('should format year correctly (singular)', () => {
       const oneYearAgo = Math.floor((Date.now() - 365 * 24 * 60 * 60 * 1000) / 1000)
-      expect(formatJoinDate(oneYearAgo)).toBe('Joined 1 year ago')
+      expect(formatJoinDate(oneYearAgo)).toBe('1 year ago')
     })
 
     it('should format months correctly', () => {
       const threeMonthsAgo = Math.floor((Date.now() - 90 * 24 * 60 * 60 * 1000) / 1000)
-      expect(formatJoinDate(threeMonthsAgo)).toBe('Joined 3 months ago')
+      expect(formatJoinDate(threeMonthsAgo)).toBe('3 months ago')
     })
 
     it('should format month correctly (singular)', () => {
       const oneMonthAgo = Math.floor((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000)
-      expect(formatJoinDate(oneMonthAgo)).toBe('Joined 1 month ago')
+      expect(formatJoinDate(oneMonthAgo)).toBe('1 month ago')
     })
 
     it('should format weeks correctly', () => {
       const twoWeeksAgo = Math.floor((Date.now() - 14 * 24 * 60 * 60 * 1000) / 1000)
-      expect(formatJoinDate(twoWeeksAgo)).toBe('Joined 2 weeks ago')
+      expect(formatJoinDate(twoWeeksAgo)).toBe('2 weeks ago')
     })
 
     it('should format days correctly', () => {
       const threeDaysAgo = Math.floor((Date.now() - 3 * 24 * 60 * 60 * 1000) / 1000)
-      expect(formatJoinDate(threeDaysAgo)).toBe('Joined 3 days ago')
+      expect(formatJoinDate(threeDaysAgo)).toBe('3 days ago')
     })
 
     it('should format hours correctly', () => {
       const fiveHoursAgo = Math.floor((Date.now() - 5 * 60 * 60 * 1000) / 1000)
-      expect(formatJoinDate(fiveHoursAgo)).toBe('Joined 5 hours ago')
+      expect(formatJoinDate(fiveHoursAgo)).toBe('5 hours ago')
     })
 
     it('should format minutes correctly', () => {
       const tenMinutesAgo = Math.floor((Date.now() - 10 * 60 * 1000) / 1000)
-      expect(formatJoinDate(tenMinutesAgo)).toBe('Joined 10 minutes ago')
+      expect(formatJoinDate(tenMinutesAgo)).toBe('10 minutes ago')
     })
 
     it('should handle just now', () => {
       const nowTimestamp = Math.floor(Date.now() / 1000)
-      expect(formatJoinDate(nowTimestamp)).toBe('Joined just now')
+      expect(formatJoinDate(nowTimestamp)).toBe('Just now')
     })
   })
 

@@ -49,24 +49,24 @@ export function formatJoinDate(timestamp: number): string {
   const diffYears = Math.floor(diffDays / 365)
 
   if (diffYears > 0) {
-    return `Joined ${diffYears} ${diffYears === 1 ? 'year' : 'years'} ago`
+    return `${diffYears} ${diffYears === 1 ? 'year' : 'years'} ago`
   }
   if (diffMonths > 0) {
-    return `Joined ${diffMonths} ${diffMonths === 1 ? 'month' : 'months'} ago`
+    return `${diffMonths} ${diffMonths === 1 ? 'month' : 'months'} ago`
   }
   if (diffWeeks > 0) {
-    return `Joined ${diffWeeks} ${diffWeeks === 1 ? 'week' : 'weeks'} ago`
+    return `${diffWeeks} ${diffWeeks === 1 ? 'week' : 'weeks'} ago`
   }
   if (diffDays > 0) {
-    return `Joined ${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`
+    return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`
   }
   if (diffHours > 0) {
-    return `Joined ${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`
+    return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`
   }
   if (diffMinutes > 0) {
-    return `Joined ${diffMinutes} ${diffMinutes === 1 ? 'minute' : 'minutes'} ago`
+    return `${diffMinutes} ${diffMinutes === 1 ? 'minute' : 'minutes'} ago`
   }
-  return 'Joined just now'
+  return 'Just now'
 }
 
 /**

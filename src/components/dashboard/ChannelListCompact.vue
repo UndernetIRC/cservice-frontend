@@ -2,14 +2,14 @@
   <div
     class="channel-row group hover:bg-gray-700/50 border-b border-gray-700 last:border-b-0 transition-colors duration-150"
   >
-    <div class="flex items-center gap-4 p-4">
+    <div class="flex items-center p-4">
       <!-- Channel Name Column -->
-      <div class="flex-1 min-w-0">
+      <div class="flex-1 min-w-0 pr-4">
         <span class="text-gray-100 font-medium truncate block">{{ channel.channel_name }}</span>
       </div>
 
       <!-- Access Level Column -->
-      <div class="w-24 flex-shrink-0">
+      <div class="w-28 flex-shrink-0 px-2">
         <span
           :class="accessLevelBadgeClass"
           class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
@@ -19,14 +19,14 @@
       </div>
 
       <!-- Members Column -->
-      <div class="w-32 flex-shrink-0 flex items-center gap-2 text-gray-300">
+      <div class="w-36 flex-shrink-0 flex items-center gap-2 text-gray-300 px-2">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
           stroke-width="1.5"
           stroke="currentColor"
-          class="w-4 h-4"
+          class="w-4 h-4 flex-shrink-0"
         >
           <path
             stroke-linecap="round"
@@ -38,14 +38,14 @@
       </div>
 
       <!-- Joined Column -->
-      <div class="w-40 flex-shrink-0 flex items-center gap-2 text-gray-300">
+      <div class="w-44 flex-shrink-0 flex items-center gap-2 text-gray-300 px-2">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
           stroke-width="1.5"
           stroke="currentColor"
-          class="w-4 h-4"
+          class="w-4 h-4 flex-shrink-0"
         >
           <path
             stroke-linecap="round"
@@ -56,8 +56,8 @@
         <span class="text-sm">{{ joinDateText }}</span>
       </div>
 
-      <!-- Actions Column -->
-      <div class="w-auto flex-shrink-0 flex items-center gap-2 relative">
+      <!-- Actions Column - Fixed width to accommodate Edit button -->
+      <div class="w-32 flex-shrink-0 flex items-center justify-end gap-2 relative pl-2">
         <el-button
           v-if="isOwner"
           type="primary"
