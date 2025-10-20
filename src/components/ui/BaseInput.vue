@@ -42,11 +42,6 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string | number): void
 }>()
-
-if (import.meta.env.DEV) {
-  console.log('BaseInput props:', props)
-  console.log('BaseInput emit defined:', emit)
-}
 </script>
 
 <style scoped>

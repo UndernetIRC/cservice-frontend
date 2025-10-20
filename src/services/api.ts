@@ -19,6 +19,7 @@ import type {
   ActivateTOTPRequest,
   DisableTOTPRequest,
 } from '@/types/api'
+import { decodeToken } from '@/utils/jwt'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
@@ -109,27 +110,83 @@ api.interceptors.response.use(
         // After waiting, check if token was updated in localStorage
         const freshToken = localStorage.getItem('access_token')
         if (freshToken) {
-          console.log('[API] Token was updated by another tab, using new token')
-          originalRequest.headers.Authorization = `Bearer ${freshToken}`
-          return api(originalRequest)
+          // Verify the fresh token is still valid and not expired
+          const decoded = decodeToken(freshToken)
+          if (decoded && decoded.exp) {
+            const expiresAtMs = decoded.exp * 1000
+            const nowMs = Date.now()
+            const timeUntilExpiryMs = expiresAtMs - nowMs
+
+            // If token expires in more than 30 seconds, use it
+            if (timeUntilExpiryMs > 30000) {
+              console.log('[API] Token was updated by another tab, using new token')
+              originalRequest.headers.Authorization = `Bearer ${freshToken}`
+              return api(originalRequest)
+            } else {
+              console.log(
+                '[API] Fresh token expires too soon, proceeding with refresh',
+              )
+            }
+          }
         }
       }
 
       try {
-        // Direct API call to refresh token
+        // Direct API call to refresh token (cookie automatically sent)
         const response = await api.post<RefreshResponse>('/authn/refresh')
         const newToken = response.data.access_token
 
         // Update token in localStorage
         localStorage.setItem('access_token', newToken)
 
+        // Manually dispatch storage event to sync current tab with auth store
+        // (storage events don't fire in the tab that made the change)
+        window.dispatchEvent(
+          new StorageEvent('storage', {
+            key: 'access_token',
+            newValue: newToken,
+            oldValue: localStorage.getItem('access_token'),
+            url: window.location.href,
+            storageArea: localStorage,
+          }),
+        )
+
+        console.log('[API] Token refreshed successfully, dispatched storage event')
+
         // Retry the original request with new token
         originalRequest.headers.Authorization = `Bearer ${newToken}`
         return api(originalRequest)
-      } catch (refreshError) {
-        // If refresh fails, clear token
-        localStorage.removeItem('access_token')
-        // Let the auth store handle the redirect or errors
+      } catch (refreshError: any) {
+        console.error('[API] Token refresh failed:', refreshError)
+
+        // Check if it's a network error or auth error
+        const isNetworkError = !refreshError.response
+        const isAuthError =
+          refreshError.response?.status === 401 || refreshError.response?.status === 403
+
+        if (isAuthError) {
+          // Auth errors mean session is truly invalid, clear token
+          console.log('[API] Auth error during refresh, clearing token')
+          localStorage.removeItem('access_token')
+          // Dispatch event to notify auth store to clear state
+          window.dispatchEvent(
+            new StorageEvent('storage', {
+              key: 'access_token',
+              newValue: null,
+              oldValue: localStorage.getItem('access_token'),
+              url: window.location.href,
+              storageArea: localStorage,
+            }),
+          )
+        } else if (isNetworkError) {
+          // Network errors might be temporary, don't clear auth state
+          console.warn('[API] Network error during refresh, keeping token for retry')
+        } else {
+          // Other errors (5xx, etc), keep token but log error
+          console.warn('[API] Server error during refresh:', refreshError.response?.status)
+        }
+
+        // Let the error propagate so caller can handle it
         return Promise.reject(refreshError)
       }
     }
