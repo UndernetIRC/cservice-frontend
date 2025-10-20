@@ -68,8 +68,8 @@ const searchQuery = ref('') // Ref for search input
 const filteredChannels = computed(() => {
   if (!props.channels) return []
   return props.channels
-    .filter((channel) => channel.name.toLowerCase().includes(searchQuery.value.toLowerCase()))
-    .sort((a, b) => a.name.localeCompare(b.name))
+    .filter((channel) => channel.name?.toLowerCase().includes(searchQuery.value.toLowerCase()))
+    .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
 })
 
 const paginatedChannels = computed(() => {

@@ -207,16 +207,43 @@ export const useAuthStore = defineStore('auth', () => {
     const timeUntilExpiryMs = expiresAtMs - nowMs
 
     if (timeUntilExpiryMs < 30000) {
-      // Token expired or expiring in less than 30 seconds
-      console.log('[checkAuth] Token expired or expiring very soon, clearing auth.')
-      clearAuth()
-      isAuthCheckComplete.value = true
-      return false
-    }
+      // Token expired or expiring in less than 30 seconds, attempt to refresh
+      console.log('[checkAuth] Token expired or expiring very soon, attempting refresh...')
 
-    console.log(
-      `[checkAuth] Token valid for ${Math.floor(timeUntilExpiryMs / 60000)} more minutes.`,
-    )
+      try {
+        // Attempt to refresh the token (cookie will be sent automatically)
+        const response = await apiService.refreshToken()
+        const newToken = response.data.access_token
+
+        // Update token in localStorage
+        localStorage.setItem('access_token', newToken)
+        accessToken.value = newToken
+
+        console.log('[checkAuth] Token refreshed successfully')
+
+        // Continue with user info fetch below
+      } catch (refreshError: any) {
+        console.error('[checkAuth] Token refresh failed:', refreshError)
+
+        // Check if it's an auth error (401/403) vs network error
+        const isAuthError = refreshError.response?.status === 401 || refreshError.response?.status === 403
+
+        if (isAuthError) {
+          console.log('[checkAuth] Auth error during refresh, clearing auth')
+          clearAuth()
+          isAuthCheckComplete.value = true
+          return false
+        } else {
+          // Network or other error - keep trying, don't clear auth yet
+          console.warn('[checkAuth] Non-auth error during refresh, will retry on next API call')
+          // Don't clear auth, let the API interceptor handle it on next request
+        }
+      }
+    } else {
+      console.log(
+        `[checkAuth] Token valid for ${Math.floor(timeUntilExpiryMs / 60000)} more minutes.`,
+      )
+    }
 
     // If we already have user info and are authenticated, we're done
     if (isAuthenticated.value && userInfo.value) {
