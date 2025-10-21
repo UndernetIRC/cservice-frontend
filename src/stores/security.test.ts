@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useSecurityStore } from './security'
 import apiService from '@/services/api'
-import type { AxiosResponse } from 'axios'
+import type { AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 
 // Helper to create mock Axios responses
 function createMockAxiosResponse<T>(data: T): AxiosResponse<T> {
@@ -11,7 +11,9 @@ function createMockAxiosResponse<T>(data: T): AxiosResponse<T> {
     status: 200,
     statusText: 'OK',
     headers: {},
-    config: {} as any,
+    config: {
+      headers: {},
+    } as InternalAxiosRequestConfig,
   }
 }
 
