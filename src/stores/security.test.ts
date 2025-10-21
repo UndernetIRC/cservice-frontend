@@ -56,7 +56,7 @@ describe('Security Store', () => {
         confirm_password: 'newpass456',
       }
 
-      vi.mocked(apiService.changePassword).mockResolvedValue({} as any)
+      vi.mocked(apiService.changePassword).mockResolvedValue({} as Record<string, never>)
 
       const result = await store.changePassword(mockData)
 
@@ -122,7 +122,7 @@ describe('Security Store', () => {
 
       vi.mocked(apiService.changePassword).mockImplementation(async () => {
         loadingDuringCall = store.isLoading
-        return {} as any
+        return {} as Record<string, never>
       })
 
       await store.changePassword(mockData)
@@ -138,7 +138,7 @@ describe('Security Store', () => {
       store.error = 'Previous error'
       store.success = 'Previous success'
 
-      vi.mocked(apiService.changePassword).mockResolvedValue({} as any)
+      vi.mocked(apiService.changePassword).mockResolvedValue({} as Record<string, never>)
 
       await store.changePassword({
         current_password: 'old',
@@ -228,7 +228,7 @@ describe('Security Store', () => {
         otp_code: '123456',
       }
 
-      vi.mocked(apiService.activateTOTP).mockResolvedValue({} as any)
+      vi.mocked(apiService.activateTOTP).mockResolvedValue({} as Record<string, never>)
 
       const result = await store.activateTOTP(mockData)
 
@@ -304,7 +304,7 @@ describe('Security Store', () => {
         otp_code: '123456',
       }
 
-      vi.mocked(apiService.disableTOTP).mockResolvedValue({} as any)
+      vi.mocked(apiService.disableTOTP).mockResolvedValue({} as Record<string, never>)
 
       const result = await store.disableTOTP(mockData)
 
@@ -408,7 +408,7 @@ describe('Security Store', () => {
       expect(store.totpEnrollmentData).toEqual(enrollResponse)
 
       // Step 2: Activate
-      vi.mocked(apiService.activateTOTP).mockResolvedValue({} as any)
+      vi.mocked(apiService.activateTOTP).mockResolvedValue({} as Record<string, never>)
 
       const activateResult = await store.activateTOTP({ otp_code: '123456' })
 
@@ -455,7 +455,7 @@ describe('Security Store', () => {
       // Loading should be true immediately
       expect(store.isLoading).toBe(true)
 
-      vi.mocked(apiService.changePassword).mockResolvedValue({} as any)
+      vi.mocked(apiService.changePassword).mockResolvedValue({} as Record<string, never>)
 
       await promise
 

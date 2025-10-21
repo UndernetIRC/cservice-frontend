@@ -563,7 +563,7 @@ function handleQrCodeError(event: Event) {
   )
 }
 
-function handleQrCodeLoad(event: Event) {
+function handleQrCodeLoad() {
   console.log('QR code loaded successfully')
 }
 

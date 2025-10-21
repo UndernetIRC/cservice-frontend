@@ -79,9 +79,9 @@ const fetchRoles = async () => {
   error.value = ''
   try {
     roles.value = await apiService.getRoles()
-  } catch (err) {
+  } catch {
     error.value = 'Failed to fetch roles'
-  } finally {
+  } finally{
     loading.value = false
   }
 }
@@ -99,7 +99,7 @@ const handleSubmit = async () => {
     }
     await fetchRoles()
     closeModal()
-  } catch (err) {
+  } catch {
     error.value = 'Failed to save role'
   }
 }
@@ -118,7 +118,7 @@ const handleDelete = async (role: Role) => {
     try {
       await apiService.deleteRole(role.id)
       await fetchRoles()
-    } catch (err) {
+    } catch {
       error.value = 'Failed to delete role'
     }
   }

@@ -180,7 +180,7 @@ describe('JWT Utils', () => {
         // Missing exp
       }
 
-      mockJwtDecode.mockReturnValue(mockPayload as any)
+      mockJwtDecode.mockReturnValue(mockPayload as { sub: string; iat: number })
 
       const result = isTokenValid('token.without.exp')
 

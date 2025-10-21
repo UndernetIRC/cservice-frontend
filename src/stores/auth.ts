@@ -14,12 +14,6 @@ import type {
 import { decodeToken } from '@/utils/jwt'
 import router from '@/router'
 
-// Constants for token refresh locking
-const LOCK_KEY = 'token_refresh_lock'
-const LOCK_EXPIRY = 10000 // 10 seconds max to hold the lock
-const LOCK_CHECK_INTERVAL = 100 // Check lock every 100ms
-const MAX_LOCK_ATTEMPTS = 50 // Maximum number of attempts to acquire the lock
-
 export const useAuthStore = defineStore('auth', () => {
   const userInfo = ref<CurrentUserResponse | null>(null)
   const isAuthenticated = ref(false)
@@ -64,91 +58,6 @@ export const useAuthStore = defineStore('auth', () => {
         accessToken.value = event.newValue
       }
     }
-  }
-
-  // Try to acquire the lock for token refresh
-  function acquireLock(): Promise<boolean> {
-    return new Promise((resolve) => {
-      const instanceId = Date.now().toString() + Math.random().toString(36).substring(2, 9)
-      const expiryTime = Date.now() + LOCK_EXPIRY
-      const lockValue = JSON.stringify({ id: instanceId, expiry: expiryTime })
-
-      let attempts = 0
-      const attemptLock = () => {
-        // Check if lock exists and is valid
-        const existingLock = localStorage.getItem(LOCK_KEY)
-
-        if (!existingLock) {
-          // No lock exists, try to acquire it
-          localStorage.setItem(LOCK_KEY, lockValue)
-
-          // Verify we got the lock (another tab might have set it simultaneously)
-          setTimeout(() => {
-            const currentLock = localStorage.getItem(LOCK_KEY)
-            if (currentLock === lockValue) {
-              console.log('[Lock] Successfully acquired token refresh lock')
-              resolve(true)
-              return
-            } else {
-              // Someone else got the lock first, continue trying
-              checkAndRetry()
-            }
-          }, 50)
-        } else {
-          // Lock exists, check if it's expired
-          try {
-            const lockData = JSON.parse(existingLock)
-            if (lockData.expiry < Date.now()) {
-              // Lock is expired, override it
-              console.log('[Lock] Found expired lock, overriding')
-              localStorage.setItem(LOCK_KEY, lockValue)
-
-              // Verify we got the lock
-              setTimeout(() => {
-                const currentLock = localStorage.getItem(LOCK_KEY)
-                if (currentLock === lockValue) {
-                  console.log('[Lock] Successfully acquired token refresh lock after expiry')
-                  resolve(true)
-                  return
-                } else {
-                  // Someone else got the lock first, continue trying
-                  checkAndRetry()
-                }
-              }, 50)
-            } else {
-              // Lock is still valid, wait and retry
-              checkAndRetry()
-            }
-          } catch (error) {
-            // Invalid lock format, override it
-            console.error('[Lock] Error parsing lock data:', error)
-            localStorage.setItem(LOCK_KEY, lockValue)
-            console.log('[Lock] Found invalid lock format, overriding')
-            resolve(true)
-            return
-          }
-        }
-      }
-
-      const checkAndRetry = () => {
-        attempts++
-        if (attempts >= MAX_LOCK_ATTEMPTS) {
-          console.warn('[Lock] Failed to acquire lock after maximum attempts')
-          resolve(false)
-          return
-        }
-
-        setTimeout(attemptLock, LOCK_CHECK_INTERVAL)
-      }
-
-      attemptLock()
-    })
-  }
-
-  // Release the lock
-  function releaseLock() {
-    localStorage.removeItem(LOCK_KEY)
-    console.log('[Lock] Released token refresh lock')
   }
 
   function clearAuth() {
@@ -222,11 +131,17 @@ export const useAuthStore = defineStore('auth', () => {
         console.log('[checkAuth] Token refreshed successfully')
 
         // Continue with user info fetch below
-      } catch (refreshError: any) {
+      } catch (refreshError: unknown) {
         console.error('[checkAuth] Token refresh failed:', refreshError)
 
+        // Type guard for axios error
+        const isAxiosError = (error: unknown): error is { response?: { status: number } } => {
+          return typeof error === 'object' && error !== null && 'response' in error
+        }
+
         // Check if it's an auth error (401/403) vs network error
-        const isAuthError = refreshError.response?.status === 401 || refreshError.response?.status === 403
+        const isAuthError = isAxiosError(refreshError) &&
+          (refreshError.response?.status === 401 || refreshError.response?.status === 403)
 
         if (isAuthError) {
           console.log('[checkAuth] Auth error during refresh, clearing auth')

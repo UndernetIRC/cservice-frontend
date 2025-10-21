@@ -2,22 +2,22 @@
   <div class="relative">
     <input
       v-bind="$attrs"
-      :id="id"
-      :type="type"
+      :id="props.id"
+      :type="props.type"
       :value="modelValue"
-      @input="(event) => $emit('update:modelValue', (event.target as HTMLInputElement).value)"
+      @input="(event) => emit('update:modelValue', (event.target as HTMLInputElement).value)"
       placeholder=" "
       class="peer block w-full px-3 py-3 appearance-none rounded-md border bg-transparent placeholder-transparent text-text-primary focus:outline-none focus:ring-0 sm:text-sm"
       :class="
-        error ? 'border-red-500 focus:border-red-500' : 'border-slate-600 focus:border-primary'
+        props.error ? 'border-red-500 focus:border-red-500' : 'border-slate-600 focus:border-primary'
       "
     />
     <label
-      :for="id"
+      :for="props.id"
       class="absolute text-sm duration-300 transform -translate-y-6 scale-75 top-3 z-10 origin-[0] left-3 px-1 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 pointer-events-none"
-      :class="['bg-slate-800', error ? 'text-red-500' : 'text-slate-500 peer-focus:text-slate-100']"
+      :class="['bg-slate-800', props.error ? 'text-red-500' : 'text-slate-500 peer-focus:text-slate-100']"
     >
-      {{ label }}
+      {{ props.label }}
     </label>
   </div>
 </template>

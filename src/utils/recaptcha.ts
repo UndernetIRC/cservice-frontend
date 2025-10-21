@@ -2,7 +2,6 @@ import { RECAPTCHA_CONFIG } from '@/config/recaptcha'
 
 let recaptchaScriptLoaded = false
 let recaptchaPromise: Promise<void> | null = null
-let recaptchaScriptElement: HTMLScriptElement | null = null
 
 /**
  * Loads the Google reCAPTCHA v3 script if not already loaded
@@ -31,7 +30,6 @@ export function loadRecaptchaScript(): Promise<void> {
 
     script.onload = () => {
       recaptchaScriptLoaded = true
-      recaptchaScriptElement = script
       resolve()
     }
 

@@ -156,13 +156,18 @@ api.interceptors.response.use(
         // Retry the original request with new token
         originalRequest.headers.Authorization = `Bearer ${newToken}`
         return api(originalRequest)
-      } catch (refreshError: any) {
+      } catch (refreshError: unknown) {
         console.error('[API] Token refresh failed:', refreshError)
 
+        // Type guard for axios error
+        const isAxiosError = (error: unknown): error is { response?: { status: number } } => {
+          return typeof error === 'object' && error !== null && 'response' in error
+        }
+
         // Check if it's a network error or auth error
-        const isNetworkError = !refreshError.response
-        const isAuthError =
-          refreshError.response?.status === 401 || refreshError.response?.status === 403
+        const isNetworkError = !isAxiosError(refreshError) || !refreshError.response
+        const isAuthError = isAxiosError(refreshError) &&
+          (refreshError.response?.status === 401 || refreshError.response?.status === 403)
 
         if (isAuthError) {
           // Auth errors mean session is truly invalid, clear token
@@ -181,7 +186,7 @@ api.interceptors.response.use(
         } else if (isNetworkError) {
           // Network errors might be temporary, don't clear auth state
           console.warn('[API] Network error during refresh, keeping token for retry')
-        } else {
+        } else if (isAxiosError(refreshError)) {
           // Other errors (5xx, etc), keep token but log error
           console.warn('[API] Server error during refresh:', refreshError.response?.status)
         }
