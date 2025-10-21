@@ -214,7 +214,9 @@
       <Pagination
         :total="displayedChannels.length"
         v-model:modelValue="currentPage"
-        v-model:pageSize="pageSize"
+        :pageSize="effectivePageSize"
+        :pageSizes="viewMode === 'grid' ? [12, 24, 36] : [10, 20, 50]"
+        @update:pageSize="handlePageSizeChange"
       />
     </div>
   </div>
@@ -242,7 +244,10 @@ const viewMode = ref<'grid' | 'list'>('grid')
 
 // Pagination state
 const currentPage = ref(1)
-const pageSize = ref(10)
+const pageSize = ref(12) // Default page size
+
+// Dynamic page size - uses the actual pageSize ref value
+const effectivePageSize = computed(() => pageSize.value)
 
 // Search and filter state
 const searchQuery = ref('')
@@ -281,8 +286,8 @@ const displayedChannels = computed(() => {
 
 // Paginated channels
 const paginatedChannels = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
+  const start = (currentPage.value - 1) * effectivePageSize.value
+  const end = start + effectivePageSize.value
   return displayedChannels.value.slice(start, end)
 })
 
@@ -295,18 +300,25 @@ watch([searchQuery, filterAccessLevel, sortField, sortDirection], () => {
 watch(
   () => displayedChannels.value.length,
   (newLength) => {
-    const totalPages = Math.ceil(newLength / pageSize.value)
+    const totalPages = Math.ceil(newLength / effectivePageSize.value)
     if (currentPage.value > totalPages && totalPages > 0) {
       currentPage.value = totalPages
     }
   }
 )
 
+// Reset to page 1 and default page size when switching views
+watch(viewMode, (newMode) => {
+  currentPage.value = 1
+  pageSize.value = newMode === 'grid' ? 12 : 10
+})
+
 // Load view preference from localStorage
 onMounted(() => {
   const savedView = localStorage.getItem('channelListViewMode')
   if (savedView === 'grid' || savedView === 'list') {
     viewMode.value = savedView
+    pageSize.value = savedView === 'grid' ? 12 : 10
   }
 })
 
@@ -317,6 +329,11 @@ watch(viewMode, (newView) => {
 
 function toggleSortDirection() {
   sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
+}
+
+function handlePageSizeChange(newSize: number) {
+  pageSize.value = newSize
+  currentPage.value = 1
 }
 
 function handleEdit(channel: ChannelInfo): void {
