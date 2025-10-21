@@ -38,7 +38,10 @@
       </div>
 
       <!-- Joined Column -->
-      <div class="w-44 flex-shrink-0 flex items-center gap-2 text-gray-300 px-2">
+      <div
+        class="w-44 flex-shrink-0 flex items-center gap-2 text-gray-300 px-2 cursor-help"
+        :title="fullDateText"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -170,6 +173,10 @@ const accessLevelText = computed(() => formatAccessLevel(props.channel.access_le
 const accessLevelBadgeClass = computed(() => getAccessLevelBadgeClass(props.channel.access_level))
 const memberCountText = computed(() => formatMemberCount(props.channel.member_count))
 const joinDateText = computed(() => formatJoinDate(props.channel.joined_at))
+const fullDateText = computed(() => {
+  const date = new Date(props.channel.joined_at * 1000)
+  return date.toLocaleString()
+})
 
 function toggleActionsMenu() {
   showActionsMenu.value = !showActionsMenu.value

@@ -88,7 +88,10 @@
       </div>
 
       <!-- Added Date -->
-      <div class="flex items-center gap-3 text-gray-300 group-hover:text-gray-200 transition-colors">
+      <div
+        class="flex items-center gap-3 text-gray-300 group-hover:text-gray-200 transition-colors cursor-help"
+        :title="fullDateText"
+      >
         <div class="p-2 bg-gray-700/50 rounded-lg group-hover:bg-gray-700 transition-colors">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -192,6 +195,10 @@ const accessLevelText = computed(() => formatAccessLevel(props.channel.access_le
 const accessLevelBadgeClass = computed(() => getAccessLevelBadgeClass(props.channel.access_level))
 const memberCountText = computed(() => formatMemberCount(props.channel.member_count))
 const joinDateText = computed(() => formatJoinDate(props.channel.joined_at))
+const fullDateText = computed(() => {
+  const date = new Date(props.channel.joined_at * 1000)
+  return date.toLocaleString()
+})
 
 function toggleActionsMenu() {
   showActionsMenu.value = !showActionsMenu.value
