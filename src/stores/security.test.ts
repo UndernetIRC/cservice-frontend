@@ -2,6 +2,18 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useSecurityStore } from './security'
 import apiService from '@/services/api'
+import type { AxiosResponse } from 'axios'
+
+// Helper to create mock Axios responses
+function createMockAxiosResponse<T>(data: T): AxiosResponse<T> {
+  return {
+    data,
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {} as any,
+  }
+}
 
 // Mock the API service
 vi.mock('@/services/api', () => ({
@@ -56,7 +68,7 @@ describe('Security Store', () => {
         confirm_password: 'newpass456',
       }
 
-      vi.mocked(apiService.changePassword).mockResolvedValue({} as Record<string, never>)
+      vi.mocked(apiService.changePassword).mockResolvedValue(createMockAxiosResponse({}))
 
       const result = await store.changePassword(mockData)
 
@@ -122,7 +134,7 @@ describe('Security Store', () => {
 
       vi.mocked(apiService.changePassword).mockImplementation(async () => {
         loadingDuringCall = store.isLoading
-        return {} as Record<string, never>
+        return createMockAxiosResponse({})
       })
 
       await store.changePassword(mockData)
@@ -138,7 +150,7 @@ describe('Security Store', () => {
       store.error = 'Previous error'
       store.success = 'Previous success'
 
-      vi.mocked(apiService.changePassword).mockResolvedValue({} as Record<string, never>)
+      vi.mocked(apiService.changePassword).mockResolvedValue(createMockAxiosResponse({}))
 
       await store.changePassword({
         current_password: 'old',
@@ -228,7 +240,7 @@ describe('Security Store', () => {
         otp_code: '123456',
       }
 
-      vi.mocked(apiService.activateTOTP).mockResolvedValue({} as Record<string, never>)
+      vi.mocked(apiService.activateTOTP).mockResolvedValue(createMockAxiosResponse({}))
 
       const result = await store.activateTOTP(mockData)
 
@@ -304,7 +316,7 @@ describe('Security Store', () => {
         otp_code: '123456',
       }
 
-      vi.mocked(apiService.disableTOTP).mockResolvedValue({} as Record<string, never>)
+      vi.mocked(apiService.disableTOTP).mockResolvedValue(createMockAxiosResponse({}))
 
       const result = await store.disableTOTP(mockData)
 
@@ -408,7 +420,7 @@ describe('Security Store', () => {
       expect(store.totpEnrollmentData).toEqual(enrollResponse)
 
       // Step 2: Activate
-      vi.mocked(apiService.activateTOTP).mockResolvedValue({} as Record<string, never>)
+      vi.mocked(apiService.activateTOTP).mockResolvedValue(createMockAxiosResponse({}))
 
       const activateResult = await store.activateTOTP({ otp_code: '123456' })
 
@@ -455,7 +467,7 @@ describe('Security Store', () => {
       // Loading should be true immediately
       expect(store.isLoading).toBe(true)
 
-      vi.mocked(apiService.changePassword).mockResolvedValue({} as Record<string, never>)
+      vi.mocked(apiService.changePassword).mockResolvedValue(createMockAxiosResponse({}))
 
       await promise
 
