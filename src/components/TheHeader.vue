@@ -64,14 +64,14 @@
               leave-to-class="transform opacity-0 scale-95"
             >
               <MenuItems
-                class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-gray-700 ring-1 ring-black ring-opacity-5 focus:outline-none"
+                class="origin-top-right absolute right-0 mt-0 w-48 rounded-b-lg shadow-2xl py-1 bg-gray-900/95 backdrop-blur-sm focus:outline-none"
               >
                 <MenuItem v-slot="{ active, close }">
                   <button
                     @click="handleNavigation('/dashboard', close)"
                     :class="[
-                      active ? 'bg-gray-100 dark:bg-gray-600' : '',
-                      'flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200',
+                      active ? 'bg-gray-700' : '',
+                      'flex items-center w-full text-left px-4 py-2 text-sm text-gray-200 transition-colors',
                     ]"
                   >
                     <!-- Dashboard Icon -->
@@ -97,8 +97,8 @@
                   <button
                     @click="handleNavigation('/account', close)"
                     :class="[
-                      active ? 'bg-gray-100 dark:bg-gray-600' : '',
-                      'flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200',
+                      active ? 'bg-gray-700' : '',
+                      'flex items-center w-full text-left px-4 py-2 text-sm text-gray-200 transition-colors',
                     ]"
                   >
                     <!-- Account Settings Icon -->
@@ -126,13 +126,13 @@
                   </button>
                 </MenuItem>
                 <!-- Divider -->
-                <div class="border-t border-gray-100 dark:border-gray-600 my-1"></div>
+                <div class="border-t border-gray-700 my-1"></div>
                 <MenuItem v-slot="{ active, close }">
                   <button
                     @click="handleLogoutWithClose(close)"
                     :class="[
-                      active ? 'bg-gray-100 dark:bg-gray-600' : '',
-                      'flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200',
+                      active ? 'bg-gray-700' : '',
+                      'flex items-center w-full text-left px-4 py-2 text-sm text-gray-200 transition-colors',
                     ]"
                   >
                     <!-- Logout Icon -->
