@@ -1,76 +1,82 @@
-# cservice-frontend
+# CService Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+Vue 3 SPA for UnderNET IRC network's account and channel management system with MFA/2FA support.
 
-## Recommended IDE Setup
+## Tech Stack
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+Vue 3.5 • TypeScript 5.8 • Vite 6 • Pinia • Vue Router 4 • Tailwind CSS 4 • Element Plus • Vitest 3.1
 
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+## Quick Start
 
 ```sh
-yarn
-```
+# Install dependencies
+yarn install
 
-### Compile and Hot-Reload for Development
-
-```sh
+# Start dev server (http://localhost:5173)
 yarn dev
-```
 
-### Type-Check, Compile and Minify for Production
+# Run tests
+yarn test:unit
 
-```sh
+# Build for production
 yarn build
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+## Development Commands
 
 ```sh
-yarn test:unit
+yarn dev           # Start dev server with HMR
+yarn build         # Type check + production build
+yarn type-check    # Run TypeScript type checking
+yarn lint          # Run ESLint with auto-fix
+yarn format        # Format code with Prettier
+yarn test:unit     # Run unit tests (111 tests)
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+## Docker
 
 ```sh
-yarn lint
+docker build -f Dockerfile.production -t cservice-frontend:latest .
+docker run -p 8080:80 cservice-frontend:latest
 ```
 
-## API Configuration
+## Environment Variables
 
-The application connects to the UnderNET IRC network API. You can configure the API endpoint using environment variables:
+Create a `.env.local` file for local overrides:
 
-### Environment Variables
+```env
+VITE_API_BASE_URL=http://localhost:8000
+VITE_RECAPTCHA_SITE_KEY=your-key-here
+```
 
-- `VITE_API_BASE_URL`: The base URL for the API (default: `http://localhost:8080/api/v1`)
+## Features
 
-### Environment Files
+- 🔐 JWT authentication with automatic refresh
+- 🔒 MFA/TOTP support
+- 📱 Cross-tab token synchronization
+- 🌐 Channel management with grid/list views
+- 👥 Role-based admin panel
+- 🎨 Dark theme UI
 
-The project includes the following environment files:
+## CI/CD
 
-- `.env`: Default environment variables for development
-- `.env.production`: Environment variables for production
+- **CI Workflow**: Runs on push/PR - linting, type check, tests, build
+- **Release Workflow**: Runs on tags - builds Docker images (amd64/arm64), deploys to K8s
+- **Dependabot**: Weekly automated dependency updates
 
-To use a different API endpoint, you can:
-
-1. Modify the `.env` file for development
-2. Create a `.env.local` file (which is git-ignored) for local overrides
-3. Set the environment variable directly when running the application
-
-Example:
+## Project Structure
 
 ```
-# For development
-VITE_API_BASE_URL=http://localhost:8080/api/v1
-
-# For production
-VITE_API_BASE_URL=https://api.undernet.org/api/v1
+src/
+├── components/   # Reusable components
+├── views/        # Page components
+├── stores/       # Pinia state management
+├── services/     # API layer
+├── router/       # Route configuration
+├── types/        # TypeScript types
+└── utils/        # Helper functions
 ```
+
+## License
+
+See [LICENSE](LICENSE) file.
