@@ -40,3 +40,8 @@ node_modules/
 # Task files
 tasks.json
 tasks/ 
+
+
+# AI
+CLAUDE.md
+.claude/
