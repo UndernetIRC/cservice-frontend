@@ -56,7 +56,8 @@ describe('Pagination Component', () => {
       })
 
       const prevButton = wrapper.findAll('button')[0]
-      expect(prevButton.attributes('disabled')).toBeDefined()
+      expect(prevButton).toBeDefined()
+      expect(prevButton!.attributes('disabled')).toBeDefined()
     })
 
     it('should enable Previous button when not on first page', () => {
@@ -69,7 +70,8 @@ describe('Pagination Component', () => {
       })
 
       const prevButton = wrapper.findAll('button')[0]
-      expect(prevButton.attributes('disabled')).toBeUndefined()
+      expect(prevButton).toBeDefined()
+      expect(prevButton!.attributes('disabled')).toBeUndefined()
     })
 
     it('should disable Next button on last page', () => {
@@ -83,7 +85,8 @@ describe('Pagination Component', () => {
 
       const buttons = wrapper.findAll('button')
       const nextButton = buttons[buttons.length - 1]
-      expect(nextButton.attributes('disabled')).toBeDefined()
+      expect(nextButton).toBeDefined()
+      expect(nextButton!.attributes('disabled')).toBeDefined()
     })
 
     it('should enable Next button when not on last page', () => {
@@ -97,7 +100,8 @@ describe('Pagination Component', () => {
 
       const buttons = wrapper.findAll('button')
       const nextButton = buttons[buttons.length - 1]
-      expect(nextButton.attributes('disabled')).toBeUndefined()
+      expect(nextButton).toBeDefined()
+      expect(nextButton!.attributes('disabled')).toBeUndefined()
     })
 
     it('should emit update:modelValue when clicking next', async () => {
@@ -111,7 +115,8 @@ describe('Pagination Component', () => {
 
       const buttons = wrapper.findAll('button')
       const nextButton = buttons[buttons.length - 1]
-      await nextButton.trigger('click')
+      expect(nextButton).toBeDefined()
+      await nextButton!.trigger('click')
 
       expect(wrapper.emitted('update:modelValue')).toBeTruthy()
       expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([2])
@@ -127,7 +132,8 @@ describe('Pagination Component', () => {
       })
 
       const prevButton = wrapper.findAll('button')[0]
-      await prevButton.trigger('click')
+      expect(prevButton).toBeDefined()
+      await prevButton!.trigger('click')
 
       expect(wrapper.emitted('update:modelValue')).toBeTruthy()
       expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([4])
@@ -143,7 +149,8 @@ describe('Pagination Component', () => {
       })
 
       const pageButtons = wrapper.findAll('li button')
-      await pageButtons[2].trigger('click') // Click page 3
+      expect(pageButtons[2]).toBeDefined()
+      await pageButtons[2]!.trigger('click') // Click page 3
 
       expect(wrapper.emitted('update:modelValue')).toBeTruthy()
       expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([3])
@@ -164,10 +171,14 @@ describe('Pagination Component', () => {
       const options = select.findAll('option')
 
       expect(options).toHaveLength(4) // Default: [5, 10, 20, 50]
-      expect(options[0].text()).toBe('5')
-      expect(options[1].text()).toBe('10')
-      expect(options[2].text()).toBe('20')
-      expect(options[3].text()).toBe('50')
+      expect(options[0]).toBeDefined()
+      expect(options[0]!.text()).toBe('5')
+      expect(options[1]).toBeDefined()
+      expect(options[1]!.text()).toBe('10')
+      expect(options[2]).toBeDefined()
+      expect(options[2]!.text()).toBe('20')
+      expect(options[3]).toBeDefined()
+      expect(options[3]!.text()).toBe('50')
     })
 
     it('should render custom page sizes', () => {
@@ -184,10 +195,14 @@ describe('Pagination Component', () => {
       const options = select.findAll('option')
 
       expect(options).toHaveLength(4)
-      expect(options[0].text()).toBe('10')
-      expect(options[1].text()).toBe('25')
-      expect(options[2].text()).toBe('50')
-      expect(options[3].text()).toBe('100')
+      expect(options[0]).toBeDefined()
+      expect(options[0]!.text()).toBe('10')
+      expect(options[1]).toBeDefined()
+      expect(options[1]!.text()).toBe('25')
+      expect(options[2]).toBeDefined()
+      expect(options[2]!.text()).toBe('50')
+      expect(options[3]).toBeDefined()
+      expect(options[3]!.text()).toBe('100')
     })
 
     it('should emit update:pageSize when changing size', async () => {
@@ -235,8 +250,9 @@ describe('Pagination Component', () => {
 
       const pageButtons = wrapper.findAll('li button')
       const currentPageButton = pageButtons[4] // Page 5 (0-indexed)
+      expect(currentPageButton).toBeDefined()
 
-      const classes = currentPageButton.classes()
+      const classes = currentPageButton!.classes()
       expect(classes).toContain('bg-primary')
       expect(classes).toContain('text-white')
     })
@@ -252,8 +268,9 @@ describe('Pagination Component', () => {
 
       const pageButtons = wrapper.findAll('li button')
       const otherPageButton = pageButtons[0] // Page 1
+      expect(otherPageButton).toBeDefined()
 
-      const classes = otherPageButton.classes()
+      const classes = otherPageButton!.classes()
       expect(classes).not.toContain('bg-primary')
       expect(classes).toContain('bg-gray-200')
     })
@@ -288,9 +305,11 @@ describe('Pagination Component', () => {
       const buttons = wrapper.findAll('button')
       const prevButton = buttons[0]
       const nextButton = buttons[buttons.length - 1]
+      expect(prevButton).toBeDefined()
+      expect(nextButton).toBeDefined()
 
-      expect(prevButton.attributes('disabled')).toBeDefined()
-      expect(nextButton.attributes('disabled')).toBeDefined()
+      expect(prevButton!.attributes('disabled')).toBeDefined()
+      expect(nextButton!.attributes('disabled')).toBeDefined()
     })
 
     it('should handle large total values', () => {
@@ -316,9 +335,10 @@ describe('Pagination Component', () => {
       })
 
       const prevButton = wrapper.findAll('button')[0]
+      expect(prevButton).toBeDefined()
 
       // Try clicking prev when already on page 1
-      await prevButton.trigger('click')
+      await prevButton!.trigger('click')
 
       // Should not emit anything since button is disabled
       expect(wrapper.emitted('update:modelValue')).toBeFalsy()
@@ -335,9 +355,10 @@ describe('Pagination Component', () => {
 
       const buttons = wrapper.findAll('button')
       const nextButton = buttons[buttons.length - 1]
+      expect(nextButton).toBeDefined()
 
       // Try clicking next when already on last page
-      await nextButton.trigger('click')
+      await nextButton!.trigger('click')
 
       // Should not emit anything since button is disabled
       expect(wrapper.emitted('update:modelValue')).toBeFalsy()
@@ -358,8 +379,9 @@ describe('Pagination Component', () => {
 
       const pageButtons = wrapper.findAll('li button')
       const currentPageButton = pageButtons[4]
+      expect(currentPageButton).toBeDefined()
 
-      expect(currentPageButton.classes()).toContain('bg-primary')
+      expect(currentPageButton!.classes()).toContain('bg-primary')
     })
 
     it('should update when pageSize prop changes', async () => {
