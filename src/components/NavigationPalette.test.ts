@@ -6,27 +6,44 @@ import { useAuthStore } from '@/stores/auth'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import ElementPlus from 'element-plus'
 
+const EmptyComponent = { template: '<div />' }
+
 // Mock router
 const router = createRouter({
   history: createMemoryHistory(),
   routes: [
-    { path: '/', name: 'landing' },
-    { path: '/dashboard', name: 'dashboard' },
-    { path: '/channels', name: 'channels' },
-    { path: '/account', name: 'account' },
-    { path: '/admin', name: 'admin' },
-    { path: '/admin/roles', name: 'admin-roles' },
+    { path: '/', name: 'landing', component: EmptyComponent },
+    { path: '/dashboard', name: 'dashboard', component: EmptyComponent },
+    { path: '/channels', name: 'channels', component: EmptyComponent },
+    { path: '/account', name: 'account', component: EmptyComponent },
+    { path: '/admin', name: 'admin', component: EmptyComponent },
+    { path: '/admin/roles', name: 'admin-roles', component: EmptyComponent },
   ],
 })
 
 describe('NavigationPalette Component', () => {
   let wrapper: VueWrapper<any>
   let authStore: ReturnType<typeof useAuthStore>
+  let originalWarn: typeof console.warn
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Suppress Element Plus internal lifecycle warnings in test environment.
+    // These occur because ElDialog's teleport/overlay registers onMounted/onUnmounted
+    // hooks outside the component instance context during test teardown.
+    originalWarn = console.warn
+    console.warn = (...args: any[]) => {
+      const msg = typeof args[0] === 'string' ? args[0] : ''
+      if (msg.includes('is called when there is no active component instance')) return
+      originalWarn.apply(console, args)
+    }
+
     // Setup fresh Pinia instance for each test
     setActivePinia(createPinia())
     authStore = useAuthStore()
+
+    // Ensure router is ready before mounting components
+    router.push('/')
+    await router.isReady()
 
     // Set default authenticated state (must set isAuthenticated explicitly)
     authStore.isAuthenticated = true
@@ -45,15 +62,18 @@ describe('NavigationPalette Component', () => {
     if (wrapper) {
       wrapper.unmount()
     }
+    console.warn = originalWarn
     vi.restoreAllMocks()
   })
 
-  const mountComponent = (options = {}) => {
+  const mountComponent = (options: Record<string, any> = {}) => {
+    const { global: globalOverrides, ...rest } = options
     return mount(NavigationPalette, {
       global: {
         plugins: [router, ElementPlus],
+        ...globalOverrides,
       },
-      ...options,
+      ...rest,
     })
   }
 
@@ -73,21 +93,13 @@ describe('NavigationPalette Component', () => {
     })
 
     it('should register keyboard event listener on mount', () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       expect(window.addEventListener).toHaveBeenCalledWith('keydown', expect.any(Function))
     })
 
     it('should remove keyboard event listener on unmount', () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.unmount()
 
@@ -104,11 +116,7 @@ describe('NavigationPalette Component', () => {
         configurable: true,
       })
 
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       // Open the modal to see the keyboard hint
       wrapper.vm.isVisible = true
@@ -126,11 +134,7 @@ describe('NavigationPalette Component', () => {
         configurable: true,
       })
 
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       wrapper.vm.$nextTick(() => {
@@ -148,11 +152,7 @@ describe('NavigationPalette Component', () => {
         configurable: true,
       })
 
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       expect(wrapper.vm.isVisible).toBe(false)
 
@@ -175,11 +175,7 @@ describe('NavigationPalette Component', () => {
         configurable: true,
       })
 
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       expect(wrapper.vm.isVisible).toBe(false)
 
@@ -196,11 +192,7 @@ describe('NavigationPalette Component', () => {
     })
 
     it('should toggle modal visibility on repeated keyboard shortcuts', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       expect(wrapper.vm.isVisible).toBe(false)
 
@@ -226,11 +218,7 @@ describe('NavigationPalette Component', () => {
     })
 
     it('should not open modal with just K key', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       const event = new KeyboardEvent('keydown', {
         key: 'k',
@@ -243,11 +231,7 @@ describe('NavigationPalette Component', () => {
     })
 
     it('should close modal with Escape key', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       // Open modal first
       wrapper.vm.isVisible = true
@@ -267,11 +251,7 @@ describe('NavigationPalette Component', () => {
 
   describe('Search Functionality', () => {
     it('should render search input', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       await wrapper.vm.$nextTick()
@@ -281,11 +261,7 @@ describe('NavigationPalette Component', () => {
     })
 
     it('should filter items based on search query', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       await wrapper.vm.$nextTick()
@@ -300,11 +276,7 @@ describe('NavigationPalette Component', () => {
     })
 
     it('should show "No pages found" when search has no results', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       wrapper.vm.searchQuery = 'xyznonexistent'
@@ -315,11 +287,7 @@ describe('NavigationPalette Component', () => {
     })
 
     it('should search in both name and description', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       await wrapper.vm.$nextTick()
@@ -336,11 +304,7 @@ describe('NavigationPalette Component', () => {
     })
 
     it('should reset selected index when search query changes', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       wrapper.vm.selectedIndex = 5
@@ -353,11 +317,7 @@ describe('NavigationPalette Component', () => {
     })
 
     it('should clear search query when modal closes', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       wrapper.vm.searchQuery = 'dashboard'
@@ -374,11 +334,7 @@ describe('NavigationPalette Component', () => {
 
   describe('Keyboard Navigation', () => {
     it('should navigate down with arrow down key', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       await wrapper.vm.$nextTick()
@@ -398,11 +354,7 @@ describe('NavigationPalette Component', () => {
     })
 
     it('should navigate up with arrow up key', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       wrapper.vm.selectedIndex = 2
@@ -416,11 +368,7 @@ describe('NavigationPalette Component', () => {
     })
 
     it('should not go below 0 when navigating up', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       wrapper.vm.selectedIndex = 0
@@ -431,11 +379,7 @@ describe('NavigationPalette Component', () => {
     })
 
     it('should not go beyond last item when navigating down', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       await wrapper.vm.$nextTick()
@@ -450,11 +394,7 @@ describe('NavigationPalette Component', () => {
     it('should navigate to selected item on Enter key', async () => {
       const routerPushSpy = vi.spyOn(router, 'push')
 
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       wrapper.vm.selectedIndex = 0
@@ -470,11 +410,7 @@ describe('NavigationPalette Component', () => {
 
   describe('Authorization Filtering', () => {
     it('should have navigation items with correct authorization flags', () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       const items = wrapper.vm.navigationItems
 
@@ -490,11 +426,7 @@ describe('NavigationPalette Component', () => {
 
     it('should filter items based on authentication state (default: authenticated)', async () => {
       // With default authenticated state from beforeEach
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       await wrapper.vm.$nextTick()
@@ -512,11 +444,7 @@ describe('NavigationPalette Component', () => {
     })
 
     it('should include all navigation categories', () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       const items = wrapper.vm.navigationItems
       const paths = items.map((item: any) => item.path)
@@ -535,11 +463,7 @@ describe('NavigationPalette Component', () => {
     it('should navigate to selected route on click', async () => {
       const routerPushSpy = vi.spyOn(router, 'push')
 
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       await wrapper.vm.$nextTick()
@@ -551,11 +475,7 @@ describe('NavigationPalette Component', () => {
     })
 
     it('should close modal after navigation', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       await wrapper.vm.$nextTick()
@@ -568,11 +488,7 @@ describe('NavigationPalette Component', () => {
 
   describe('Modal Behavior', () => {
     it('should close modal when clicking close button', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       await wrapper.vm.$nextTick()
@@ -585,12 +501,7 @@ describe('NavigationPalette Component', () => {
     })
 
     it('should focus search input when modal opens', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-        attachTo: document.body,
-      })
+      wrapper = mountComponent({ attachTo: document.body })
 
       wrapper.vm.isVisible = true
       await wrapper.vm.$nextTick()
@@ -600,18 +511,12 @@ describe('NavigationPalette Component', () => {
 
       const searchInput = wrapper.find('input[placeholder="Search pages..."]')
       expect(document.activeElement).toBe(searchInput.element)
-
-      wrapper.unmount()
     })
   })
 
   describe('Navigation Items', () => {
     it('should have correct navigation item structure', () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       const items = wrapper.vm.navigationItems
 
@@ -627,11 +532,7 @@ describe('NavigationPalette Component', () => {
     })
 
     it('should include all expected routes', () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       const items = wrapper.vm.navigationItems
       const paths = items.map((item: any) => item.path)
@@ -647,11 +548,7 @@ describe('NavigationPalette Component', () => {
 
   describe('Styling', () => {
     it('should apply dark theme classes', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       await wrapper.vm.$nextTick()
@@ -661,11 +558,7 @@ describe('NavigationPalette Component', () => {
     })
 
     it('should highlight selected item', async () => {
-      wrapper = mountComponent({
-        global: {
-          plugins: [router, ElementPlus],
-        },
-      })
+      wrapper = mountComponent()
 
       wrapper.vm.isVisible = true
       wrapper.vm.selectedIndex = 0
