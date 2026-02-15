@@ -89,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, h } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, h, type Component } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { storeToRefs } from 'pinia'
@@ -98,7 +98,7 @@ interface NavigationItem {
   path: string
   name: string
   description: string
-  icon: any
+  icon: Component
   requiresAuth?: boolean
   requiresAdmin?: boolean
 }

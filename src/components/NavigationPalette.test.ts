@@ -1,10 +1,20 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mount, VueWrapper } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import NavigationPalette from './NavigationPalette.vue'
 import { useAuthStore } from '@/stores/auth'
 import { createRouter, createMemoryHistory } from 'vue-router'
 import ElementPlus from 'element-plus'
+import type { Component } from 'vue'
+
+interface NavigationItem {
+  path: string
+  name: string
+  description: string
+  icon: Component
+  requiresAuth?: boolean
+  requiresAdmin?: boolean
+}
 
 const EmptyComponent = { template: '<div />' }
 
@@ -22,6 +32,7 @@ const router = createRouter({
 })
 
 describe('NavigationPalette Component', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let wrapper: VueWrapper<any>
   let authStore: ReturnType<typeof useAuthStore>
   let originalWarn: typeof console.warn
@@ -31,6 +42,7 @@ describe('NavigationPalette Component', () => {
     // These occur because ElDialog's teleport/overlay registers onMounted/onUnmounted
     // hooks outside the component instance context during test teardown.
     originalWarn = console.warn
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     console.warn = (...args: any[]) => {
       const msg = typeof args[0] === 'string' ? args[0] : ''
       if (msg.includes('is called when there is no active component instance')) return
@@ -74,6 +86,7 @@ describe('NavigationPalette Component', () => {
     vi.restoreAllMocks()
   })
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mountComponent = (options: Record<string, any> = {}) => {
     const { global: globalOverrides, ...rest } = options
     return mount(NavigationPalette, {
@@ -280,7 +293,7 @@ describe('NavigationPalette Component', () => {
 
       const filtered = wrapper.vm.filteredItems
       // Should find the dashboard route
-      expect(filtered.some((item: any) => item.name.toLowerCase().includes('dashboard'))).toBe(true)
+      expect(filtered.some((item: NavigationItem) => item.name.toLowerCase().includes('dashboard'))).toBe(true)
     })
 
     it('should show "No pages found" when search has no results', async () => {
@@ -307,7 +320,7 @@ describe('NavigationPalette Component', () => {
       const filtered = wrapper.vm.filteredItems
       // Should find routes with "manage" in description (Channels, Account Settings, Admin Panel, Role Management)
       expect(
-        filtered.some((item: any) => item.description.toLowerCase().includes('manage')),
+        filtered.some((item: NavigationItem) => item.description.toLowerCase().includes('manage')),
       ).toBe(true)
     })
 
@@ -423,11 +436,11 @@ describe('NavigationPalette Component', () => {
       const items = wrapper.vm.navigationItems
 
       // Check that items have correct auth requirements
-      const dashboardItem = items.find((item: any) => item.path === '/dashboard')
+      const dashboardItem = items.find((item: NavigationItem) => item.path === '/dashboard')
       expect(dashboardItem).toBeDefined()
       expect(dashboardItem.requiresAuth).toBe(true)
 
-      const adminItem = items.find((item: any) => item.path === '/admin')
+      const adminItem = items.find((item: NavigationItem) => item.path === '/admin')
       expect(adminItem).toBeDefined()
       expect(adminItem.requiresAdmin).toBe(true)
     })
@@ -442,20 +455,20 @@ describe('NavigationPalette Component', () => {
       const filtered = wrapper.vm.filteredItems
 
       // Should show authenticated routes (with default admin_level: 0)
-      expect(filtered.some((item: any) => item.path === '/dashboard')).toBe(true)
-      expect(filtered.some((item: any) => item.path === '/channels')).toBe(true)
-      expect(filtered.some((item: any) => item.path === '/account')).toBe(true)
+      expect(filtered.some((item: NavigationItem) => item.path === '/dashboard')).toBe(true)
+      expect(filtered.some((item: NavigationItem) => item.path === '/channels')).toBe(true)
+      expect(filtered.some((item: NavigationItem) => item.path === '/account')).toBe(true)
 
       // Should not show admin routes (admin_level < 800)
-      expect(filtered.some((item: any) => item.path === '/admin')).toBe(false)
-      expect(filtered.some((item: any) => item.path === '/admin/roles')).toBe(false)
+      expect(filtered.some((item: NavigationItem) => item.path === '/admin')).toBe(false)
+      expect(filtered.some((item: NavigationItem) => item.path === '/admin/roles')).toBe(false)
     })
 
     it('should include all navigation categories', () => {
       wrapper = mountComponent()
 
       const items = wrapper.vm.navigationItems
-      const paths = items.map((item: any) => item.path)
+      const paths = items.map((item: NavigationItem) => item.path)
 
       // Verify all expected routes are in the navigation items
       expect(paths).toContain('/')
@@ -543,7 +556,7 @@ describe('NavigationPalette Component', () => {
       wrapper = mountComponent()
 
       const items = wrapper.vm.navigationItems
-      const paths = items.map((item: any) => item.path)
+      const paths = items.map((item: NavigationItem) => item.path)
 
       expect(paths).toContain('/')
       expect(paths).toContain('/dashboard')
