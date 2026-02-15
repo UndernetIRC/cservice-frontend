@@ -62,3 +62,30 @@ html.dark .el-pagination button:disabled {
 .grecaptcha-badge {
   display: none !important;
 }
+
+/* Navigation Palette Modal Dark Theme */
+.navigation-palette-overlay {
+  background-color: rgba(0, 0, 0, 0.75) !important;
+}
+
+.navigation-palette-dialog {
+  background-color: #111827 !important; /* slate-900 */
+  background: #111827 !important; /* slate-900 */
+  border: 1px solid #374151 !important; /* gray-700 */
+  --el-dialog-bg-color: #111827 !important;
+  --el-bg-color: #111827 !important;
+}
+
+.navigation-palette-dialog .el-dialog__header {
+  background-color: #111827 !important;
+  background: #111827 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.navigation-palette-dialog .el-dialog__body {
+  background-color: #111827 !important;
+  background: #111827 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
