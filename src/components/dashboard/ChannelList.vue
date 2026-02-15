@@ -179,7 +179,7 @@
         v-for="channel in paginatedChannels"
         :key="channel.channel_id"
         :channel="channel"
-        @edit="handleEdit"
+        @select="handleSelect"
         @view-details="handleViewDetails"
         @copy-name="handleCopyName"
       />
@@ -203,7 +203,7 @@
         v-for="channel in paginatedChannels"
         :key="channel.channel_id"
         :channel="channel"
-        @edit="handleEdit"
+        @select="handleSelect"
         @view-details="handleViewDetails"
         @copy-name="handleCopyName"
       />
@@ -219,6 +219,15 @@
         @update:pageSize="handlePageSizeChange"
       />
     </div>
+
+    <!-- Channel Detail Drawer -->
+    <ChannelDetailDrawer
+      v-if="selectedChannelId !== null"
+      v-model="drawerOpen"
+      :channel-id="selectedChannelId"
+      :access-level="selectedAccessLevel"
+      @settings-updated="handleSettingsUpdated"
+    />
   </div>
 </template>
 
@@ -230,6 +239,7 @@ import type { SortField, SortDirection } from '@/utils/channelHelpers'
 import ChannelCard from './ChannelCard.vue'
 import ChannelListCompact from './ChannelListCompact.vue'
 import Pagination from '@/components/ui/Pagination.vue'
+import ChannelDetailDrawer from '@/components/channel/ChannelDetailDrawer.vue'
 
 interface Props {
   channels?: ChannelInfo[]
@@ -336,21 +346,29 @@ function handlePageSizeChange(newSize: number) {
   currentPage.value = 1
 }
 
-function handleEdit(channel: ChannelInfo): void {
-  console.log('Edit channel:', channel)
-  // TODO: Implement navigation or modal for editing the channel
+// Drawer state
+const drawerOpen = ref(false)
+const selectedChannelId = ref<number | null>(null)
+const selectedAccessLevel = ref(0)
+
+function handleSelect(channel: ChannelInfo): void {
+  selectedChannelId.value = channel.channel_id
+  selectedAccessLevel.value = channel.access_level
+  drawerOpen.value = true
 }
 
 function handleViewDetails(channel: ChannelInfo): void {
-  console.log('View details:', channel)
-  // TODO: Implement details view/modal
+  handleSelect(channel)
+}
+
+function handleSettingsUpdated(): void {
+  // Settings were saved in the drawer — could refresh channel list here if needed
 }
 
 function handleCopyName(channelName: string): void {
   navigator.clipboard.writeText(channelName).then(
     () => {
       console.log('Channel name copied:', channelName)
-      // TODO: Show toast notification
     },
     (err) => {
       console.error('Failed to copy channel name:', err)

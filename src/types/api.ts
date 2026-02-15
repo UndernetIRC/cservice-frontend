@@ -131,3 +131,34 @@ export interface DisableTOTPRequest {
   current_password: string
   otp_code: string
 }
+
+// Channel Settings Types
+export interface ChannelSettings {
+  autojoin: boolean
+  autotopic: boolean
+  description: string
+  floatgrace: number
+  floatlim: boolean
+  floatmargin: number
+  floatmax: number
+  floatperiod: number
+  keywords: string
+  massdeoppro: number
+  noop: boolean
+  strictop: boolean
+  url: string
+  userflags: number
+}
+
+export interface ChannelDetailResponse {
+  id: number
+  name: string
+  created_at: number
+  updated_at: number
+  member_count: number
+  settings: ChannelSettings
+}
+
+export type UpdateChannelSettingsRequest = Partial<ChannelSettings>
+
+export type UpdateChannelSettingsResponse = ChannelDetailResponse

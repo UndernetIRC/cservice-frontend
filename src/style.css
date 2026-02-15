@@ -4,6 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Use class-based dark mode (html.dark) instead of prefers-color-scheme.
+   This aligns Tailwind dark: variants with Element Plus dark mode. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Plugin-driven base, components, utilities are injected via @tailwindcss/vite */
 
 /* Keep existing direct body styles if preferred */
@@ -88,4 +92,152 @@ html.dark .el-pagination button:disabled {
   background: #111827 !important;
   padding: 0 !important;
   margin: 0 !important;
+}
+
+/* ===== Channel Detail Drawer Dark Theme ===== */
+/* Drawer is teleported to <body> so component scoped styles cannot reach it */
+.channel-detail-drawer .el-drawer {
+  background-color: #0f172a !important;
+  border-left: 1px solid #1e293b !important;
+}
+
+.channel-detail-drawer .el-drawer__header {
+  display: none !important;
+}
+
+.channel-detail-drawer .el-drawer__body {
+  padding: 0 !important;
+}
+
+/* Form inputs inside the drawer */
+.channel-detail-drawer .el-input__wrapper {
+  background-color: #1e293b !important;
+  box-shadow: 0 0 0 1px #334155 inset !important;
+}
+
+.channel-detail-drawer .el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px #475569 inset !important;
+}
+
+.channel-detail-drawer .el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px #06b6d4 inset !important;
+}
+
+.channel-detail-drawer .el-input__inner,
+.channel-detail-drawer .el-textarea__inner {
+  color: #f1f5f9 !important;
+}
+
+.channel-detail-drawer .el-textarea__inner {
+  background-color: #1e293b !important;
+  box-shadow: 0 0 0 1px #334155 inset !important;
+}
+
+.channel-detail-drawer .el-textarea__inner:hover {
+  box-shadow: 0 0 0 1px #475569 inset !important;
+}
+
+.channel-detail-drawer .el-textarea__inner:focus {
+  box-shadow: 0 0 0 1px #06b6d4 inset !important;
+}
+
+.channel-detail-drawer .el-input__count-inner {
+  background-color: transparent !important;
+  color: #64748b !important;
+}
+
+/* Input number */
+.channel-detail-drawer .el-input-number {
+  --el-input-bg-color: #1e293b;
+}
+
+.channel-detail-drawer .el-input-number .el-input-number__decrease,
+.channel-detail-drawer .el-input-number .el-input-number__increase {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #94a3b8 !important;
+}
+
+.channel-detail-drawer .el-input-number .el-input-number__decrease:hover,
+.channel-detail-drawer .el-input-number .el-input-number__increase:hover {
+  color: #06b6d4 !important;
+}
+
+/* Radio buttons */
+.channel-detail-drawer .el-radio-button__inner {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #94a3b8 !important;
+}
+
+.channel-detail-drawer .el-radio-button__original-radio:checked + .el-radio-button__inner {
+  background-color: #06b6d4 !important;
+  border-color: #06b6d4 !important;
+  color: #ffffff !important;
+  box-shadow: -1px 0 0 0 #06b6d4 !important;
+}
+
+/* Switch */
+.channel-detail-drawer .el-switch__core {
+  border-color: #334155 !important;
+}
+
+.channel-detail-drawer .el-switch:not(.is-checked) .el-switch__core {
+  background-color: #334155 !important;
+}
+
+/* Buttons */
+.channel-detail-drawer .el-button--default {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+.channel-detail-drawer .el-button--default:hover {
+  background-color: #334155 !important;
+  border-color: #475569 !important;
+  color: #f1f5f9 !important;
+}
+
+/* Close button */
+.channel-detail-drawer .el-drawer__close-btn {
+  color: #94a3b8 !important;
+}
+
+.channel-detail-drawer .el-drawer__close-btn:hover {
+  color: #f1f5f9 !important;
+}
+
+/* Overlay */
+.el-overlay:has(.channel-detail-drawer) {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Lock body scroll when drawer is open on mobile.
+   Element Plus adds .el-popup-parent--hidden while a drawer is visible,
+   but removes it on close even though the overlay element stays in the DOM.
+   We piggy-back on that class instead of :has() which would still match
+   the hidden overlay. */
+@media (max-width: 640px) {
+  body.el-popup-parent--hidden {
+    overflow: hidden !important;
+  }
+}
+
+/* MessageBox (confirm dialog) dark theme */
+html.dark .el-message-box {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+html.dark .el-message-box__title {
+  color: #f1f5f9 !important;
+}
+
+html.dark .el-message-box__message {
+  color: #cbd5e1 !important;
+}
+
+html.dark .el-message-box__headerbtn .el-message-box__close {
+  color: #94a3b8 !important;
 }

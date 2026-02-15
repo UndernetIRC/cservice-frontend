@@ -1,6 +1,13 @@
 <template>
   <div
-    class="channel-row group hover:bg-gray-700/50 border-b border-gray-700 last:border-b-0 transition-colors duration-150"
+    :class="[
+      'channel-row group border-b border-gray-700 last:border-b-0 transition-colors duration-150',
+      isClickable
+        ? 'hover:bg-gray-700/50 cursor-pointer'
+        : '',
+    ]"
+    data-testid="row-clickable"
+    @click="handleRowClick"
   >
     <div class="flex items-center p-4">
       <!-- Channel Name Column -->
@@ -59,19 +66,11 @@
         <span class="text-sm">{{ joinDateText }}</span>
       </div>
 
-      <!-- Actions Column - Fixed width to accommodate Edit button -->
+      <!-- Actions Column -->
       <div class="w-32 flex-shrink-0 flex items-center justify-end gap-2 relative pl-2">
-        <el-button
-          v-if="isOwner"
-          type="primary"
-          size="small"
-          @click="$emit('edit', channel)"
-          class="!px-3 !py-1"
-        >
-          Edit
-        </el-button>
         <button
-          @click="toggleActionsMenu"
+          data-testid="actions-toggle"
+          @click.stop="toggleActionsMenu"
           class="p-2 hover:bg-gray-600 rounded transition-colors"
           title="More actions"
         >
@@ -94,10 +93,11 @@
         <!-- Actions Menu Dropdown -->
         <div
           v-if="showActionsMenu"
-          class="absolute right-0 top-full mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-xl py-1 z-10 min-w-[160px]"
+          class="absolute right-0 top-full mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-xl py-1 z-20 min-w-[160px]"
         >
           <button
-            @click="handleViewDetails"
+            data-testid="action-view-details"
+            @click.stop="handleViewDetails"
             class="w-full px-4 py-2 text-left text-sm text-gray-200 hover:bg-gray-600 transition-colors flex items-center gap-2"
           >
             <svg
@@ -118,7 +118,8 @@
             View Details
           </button>
           <button
-            @click="handleCopyName"
+            data-testid="action-copy-name"
+            @click.stop="handleCopyName"
             class="w-full px-4 py-2 text-left text-sm text-gray-200 hover:bg-gray-600 transition-colors flex items-center gap-2"
           >
             <svg
@@ -144,8 +145,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { ElButton } from 'element-plus'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import type { ChannelInfo } from '@/types/api'
 import {
   formatAccessLevel,
@@ -161,14 +161,14 @@ interface Props {
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  edit: [channel: ChannelInfo]
+  select: [channel: ChannelInfo]
   viewDetails: [channel: ChannelInfo]
   copyName: [channelName: string]
 }>()
 
 const showActionsMenu = ref(false)
 
-const isOwner = computed(() => props.channel.access_level >= 500)
+const isClickable = computed(() => props.channel.access_level >= 100)
 const accessLevelText = computed(() => formatAccessLevel(props.channel.access_level))
 const accessLevelBadgeClass = computed(() => getAccessLevelBadgeClass(props.channel.access_level))
 const memberCountText = computed(() => formatMemberCount(props.channel.member_count))
@@ -177,6 +177,12 @@ const fullDateText = computed(() => {
   const date = new Date(props.channel.joined_at * 1000)
   return date.toLocaleString()
 })
+
+function handleRowClick() {
+  if (isClickable.value && !showActionsMenu.value) {
+    emit('select', props.channel)
+  }
+}
 
 function toggleActionsMenu() {
   showActionsMenu.value = !showActionsMenu.value
@@ -200,10 +206,14 @@ function handleClickOutside(event: MouseEvent) {
   }
 }
 
-// Add event listener for clicking outside
-if (typeof window !== 'undefined') {
+// Add event listener for clicking outside (with proper cleanup)
+onMounted(() => {
   document.addEventListener('click', handleClickOutside)
-}
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
 
 <style scoped>

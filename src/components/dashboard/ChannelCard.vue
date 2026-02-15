@@ -1,7 +1,15 @@
 <template>
   <div
-    class="channel-card relative bg-gradient-to-br from-gray-800 to-gray-850 rounded-lg border border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-900/20 hover:-translate-y-1 hover:scale-[1.02] overflow-hidden group"
+    :class="[
+      'channel-card relative bg-gradient-to-br from-gray-800 to-gray-850 rounded-lg border border-gray-700 overflow-hidden group',
+      isClickable
+        ? 'hover:border-gray-600 transition-all duration-300 hover:shadow-2xl hover:shadow-blue-900/20 hover:-translate-y-1 hover:scale-[1.02] cursor-pointer'
+        : 'no-click transition-colors duration-300',
+    ]"
+    data-testid="card-clickable"
+    @click="handleCardClick"
   >
+
     <!-- Animated gradient overlay for owned channels -->
     <div
       v-if="isOwner"
@@ -13,23 +21,16 @@
       v-if="isOwner"
       class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-cyan-400 to-blue-500 opacity-70"
     ></div>
+
     <!-- Card Header -->
-    <div class="relative p-4 border-b border-gray-700/50 flex items-center justify-between backdrop-blur-sm">
+    <div class="relative z-10 p-4 border-b border-gray-700/50 flex items-center justify-between backdrop-blur-sm">
       <h3 class="text-lg font-semibold text-gray-100 truncate group-hover:text-white transition-colors">
         {{ channel.channel_name }}
       </h3>
       <div class="flex items-center gap-2 flex-shrink-0">
-        <el-button
-          v-if="isOwner"
-          type="primary"
-          size="small"
-          @click="$emit('edit', channel)"
-          class="!px-3 !py-1"
-        >
-          Edit
-        </el-button>
         <button
-          @click="toggleActionsMenu"
+          data-testid="actions-toggle"
+          @click.stop="toggleActionsMenu"
           class="p-2 hover:bg-gray-700 rounded transition-colors"
           title="More actions"
         >
@@ -52,7 +53,7 @@
     </div>
 
     <!-- Card Body -->
-    <div class="relative p-5 space-y-4">
+    <div class="relative z-10 p-5 space-y-4">
       <!-- Access Level Badge with Raw Level -->
       <div class="flex items-center justify-between">
         <span
@@ -118,10 +119,11 @@
     <!-- Actions Menu Dropdown -->
     <div
       v-if="showActionsMenu"
-      class="absolute right-4 top-16 bg-gray-700 border border-gray-600 rounded-lg shadow-xl py-1 z-10 min-w-[160px]"
+      class="absolute right-4 top-16 bg-gray-700 border border-gray-600 rounded-lg shadow-xl py-1 z-20 min-w-[160px]"
     >
       <button
-        @click="handleViewDetails"
+        data-testid="action-view-details"
+        @click.stop="handleViewDetails"
         class="w-full px-4 py-2 text-left text-sm text-gray-200 hover:bg-gray-600 transition-colors flex items-center gap-2"
       >
         <svg
@@ -142,7 +144,8 @@
         View Details
       </button>
       <button
-        @click="handleCopyName"
+        data-testid="action-copy-name"
+        @click.stop="handleCopyName"
         class="w-full px-4 py-2 text-left text-sm text-gray-200 hover:bg-gray-600 transition-colors flex items-center gap-2"
       >
         <svg
@@ -166,8 +169,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { ElButton } from 'element-plus'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import type { ChannelInfo } from '@/types/api'
 import {
   formatAccessLevel,
@@ -183,13 +185,14 @@ interface Props {
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  edit: [channel: ChannelInfo]
+  select: [channel: ChannelInfo]
   viewDetails: [channel: ChannelInfo]
   copyName: [channelName: string]
 }>()
 
 const showActionsMenu = ref(false)
 
+const isClickable = computed(() => props.channel.access_level >= 100)
 const isOwner = computed(() => props.channel.access_level >= 500)
 const accessLevelText = computed(() => formatAccessLevel(props.channel.access_level))
 const accessLevelBadgeClass = computed(() => getAccessLevelBadgeClass(props.channel.access_level))
@@ -199,6 +202,12 @@ const fullDateText = computed(() => {
   const date = new Date(props.channel.joined_at * 1000)
   return date.toLocaleString()
 })
+
+function handleCardClick() {
+  if (isClickable.value && !showActionsMenu.value) {
+    emit('select', props.channel)
+  }
+}
 
 function toggleActionsMenu() {
   showActionsMenu.value = !showActionsMenu.value
@@ -222,10 +231,14 @@ function handleClickOutside(event: MouseEvent) {
   }
 }
 
-// Add event listener for clicking outside
-if (typeof window !== 'undefined') {
+// Add event listener for clicking outside (with proper cleanup)
+onMounted(() => {
   document.addEventListener('click', handleClickOutside)
-}
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 </script>
 
 <style scoped>

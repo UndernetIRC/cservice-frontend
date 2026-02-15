@@ -18,6 +18,9 @@ import type {
   EnrollTOTPResponse,
   ActivateTOTPRequest,
   DisableTOTPRequest,
+  ChannelDetailResponse,
+  UpdateChannelSettingsRequest,
+  UpdateChannelSettingsResponse,
 } from '@/types/api'
 import { decodeToken } from '@/utils/jwt'
 
@@ -287,6 +290,17 @@ const apiService = {
   disableTOTP: async (data: DisableTOTPRequest) => {
     const response = await api.post('/user/2fa/disable', data)
     return response
+  },
+
+  // Channel Management
+  getChannelSettings: async (id: number) => {
+    const response = await api.get<ChannelDetailResponse>(`/channels/${id}`)
+    return response.data
+  },
+
+  updateChannelSettings: async (id: number, data: UpdateChannelSettingsRequest) => {
+    const response = await api.patch<UpdateChannelSettingsResponse>(`/channels/${id}`, data)
+    return response.data
   },
 }
 
