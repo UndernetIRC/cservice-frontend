@@ -166,6 +166,7 @@
                   class="keyword-input"
                   placeholder="Add keyword..."
                   @keydown.enter.prevent="addKeyword"
+                  @keydown.space.prevent="addKeyword"
                   @keydown.,="addKeyword"
                   @blur="addKeyword"
                 />
@@ -309,6 +310,11 @@ watch(isFloatLimEnabled, (newVal) => {
 
 // --- Keywords Tag Helpers ---
 
+function normalizeKeywords(value: string | undefined | null): string {
+  if (!value) return ''
+  return value.split(',').map((k) => k.trim()).filter(Boolean).join(',')
+}
+
 const keywordTags = computed<string[]>(() => {
   const raw = formData.value.keywords as string
   if (!raw || !raw.trim()) return []
@@ -318,7 +324,7 @@ const keywordTags = computed<string[]>(() => {
 const keywordCharCount = computed(() => (formData.value.keywords as string)?.length ?? 0)
 
 function addKeyword() {
-  const tag = keywordInput.value.replace(/,/g, '').trim()
+  const tag = keywordInput.value.replace(/[,\s]/g, '').trim()
   if (!tag) return
   keywordInput.value = ''
   const current = keywordTags.value
@@ -340,7 +346,13 @@ function onFieldChange(
 ) {
   ;(formData.value as Record<string, unknown>)[key] = value
 
-  if (value === props.settings[key]) {
+  const originalValue = props.settings[key]
+  const isEqual =
+    key === 'keywords'
+      ? normalizeKeywords(value as string) === normalizeKeywords(originalValue as string)
+      : value === originalValue
+
+  if (isEqual) {
     dirtyFields.value.delete(key)
     delete errors[key]
   } else {

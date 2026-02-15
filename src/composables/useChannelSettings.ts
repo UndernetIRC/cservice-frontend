@@ -62,7 +62,7 @@ export const SETTING_GROUPS: SettingGroup[] = [
         type: 'string',
         requiredLevel: 450,
         validation: { maxLength: 300 },
-        description: 'Comma-separated keywords for channel search',
+        description: 'Type a keyword and press Enter to add',
       },
       {
         key: 'userflags',
