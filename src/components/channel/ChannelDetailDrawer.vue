@@ -228,7 +228,7 @@ async function fetchSettings() {
 }
 
 async function handleClose(done: () => void) {
-  if (isEditing.value && settingsFormRef.value?.dirtyCount > 0) {
+  if (isEditing.value && (settingsFormRef.value?.dirtyCount ?? 0) > 0) {
     try {
       await ElMessageBox.confirm(
         'You have unsaved changes. Are you sure you want to close?',
