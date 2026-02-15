@@ -48,8 +48,16 @@ describe('NavigationPalette Component', () => {
     // Set default authenticated state (must set isAuthenticated explicitly)
     authStore.isAuthenticated = true
     authStore.userInfo = {
+      id: 1,
       username: 'testuser',
       email: 'test@example.com',
+      first_name: 'Test',
+      last_name: 'User',
+      is_active: true,
+      is_staff: false,
+      is_superuser: false,
+      date_joined: '2024-01-01T00:00:00Z',
+      last_login: '2024-01-01T00:00:00Z',
       admin_level: 0,
     }
 
@@ -565,11 +573,9 @@ describe('NavigationPalette Component', () => {
       await wrapper.vm.$nextTick()
 
       const buttons = wrapper.findAll('button[class*="border-l-4"]')
-      if (buttons.length > 0) {
-        const firstButton = buttons[0]
-        expect(firstButton.classes()).toContain('bg-gray-700')
-        expect(firstButton.classes()).toContain('border-primary')
-      }
+      expect(buttons.length).toBeGreaterThan(0)
+      expect(buttons[0]!.classes()).toContain('bg-gray-700')
+      expect(buttons[0]!.classes()).toContain('border-primary')
     })
   })
 })
