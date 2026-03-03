@@ -12,9 +12,9 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 10
     reviewers:
-      - "ratler"
+      - "Ratler"
     assignees:
-      - "ratler"
+      - "Ratler"
     labels:
       - "dependencies"
       - "javascript"
@@ -43,9 +43,9 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 5
     reviewers:
-      - "ratler"
+      - "Ratler"
     assignees:
-      - "ratler"
+      - "Ratler"
     labels:
       - "dependencies"
       - "github-actions"
@@ -62,9 +62,9 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 5
     reviewers:
-      - "ratler"
+      - "Ratler"
     assignees:
-      - "ratler"
+      - "Ratler"
     labels:
       - "dependencies"
       - "docker"
